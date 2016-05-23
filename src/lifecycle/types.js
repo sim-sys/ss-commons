@@ -18,9 +18,12 @@ export type Facility<Args, Result> = {
   lifecycle: ?Lifecycle<Args, Result>,
 
   // a hook to start the facility up
-  startup?: (args: Args) => Promise<void>,
+  startup: (args: Args) => Promise<void>,
 
   // a hook to shutdown the facility gracefully,
   // partial result may be provided
-  shutdown?: () => Promise<?Result>
+  shutdown: () => Promise<void>
 };
+
+// TODO hooks should be optional, but it seems impossible to satisfy
+// with types + classes at the time

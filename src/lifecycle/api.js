@@ -13,6 +13,13 @@ import type {
 } from './types.js';
 
 
+// doesn't do much, but can validate protocol conformance
+// earlier
+export function init<Args, Result>(obj: Facility<Args, Result>) {
+  obj.lifecycle = new Lifecycle(obj);
+}
+
+
 export function startup<Args, Result>(obj: Facility<Args, Result>, args: Args): Promise<Signal<Result>> {
   if (!obj.lifecycle) {
     obj.lifecycle = new Lifecycle(obj);

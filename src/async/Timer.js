@@ -3,6 +3,7 @@
 import type Lifecycle from '../lifecycle/Lifecycle.js';
 
 import {
+  init,
   signalFailure
 } from '../lifecycle/api.js';
 
@@ -17,12 +18,12 @@ type Args = {
 class Timer {
 
   lifecycle: ?Lifecycle<Args, void>;
-  _shutdownSignal: Signal<void>;
-  _shutdownCompletedSignal: Signal<void>;
+  _shutdownSignal: Signal<void>; // signal that shutdown is requested
+  _shutdownCompletedSignal: Signal<void>; // signal that shutdown is completed
   _shuttingDown: boolean;
 
   constructor() {
-    this.lifecycle = null;
+    init(this);
     this._shuttingDown = false;
     this._shutdownSignal = new Signal();
     this._shutdownCompletedSignal = new Signal();
