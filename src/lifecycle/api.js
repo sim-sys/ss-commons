@@ -15,59 +15,58 @@ import type {
 
 // doesn't do much, but can validate protocol conformance
 // earlier
-export function init<Args, Result>(obj: Facility<Args, Result>) {
+export function init<Args>(obj: Facility<Args>) {
   obj.lifecycle = new Lifecycle(obj);
 }
 
-
-export function startup<Args, Result>(
-  obj: Facility<Args, Result>,
+export function startup<Args>(
+  obj: Facility<Args>,
   args: Args
-): Promise<Signal<Result>> {
+): Promise<Signal<void>> {
   if (!obj.lifecycle) {
     throw new Error('wtf'); // TODO
   }
 
-  return obj.lifecycle._startup(args);
+  return obj.lifecycle.startup(args);
 }
 
-export function shutdown<Args, Result>(
-  obj: Facility<Args, Result> // TODO support timeouts/deadlines
-): Promise<?Result> {
+export function shutdown<Args>(
+  obj: Facility<Args> // TODO support timeouts/deadlines
+): Promise<void> {
   if (!obj.lifecycle) {
     throw new Error('wtf');
   }
 
-  return obj.lifecycle._shutdown();
+  return obj.lifecycle.shutdown();
 }
 
 // run a facility and wait for completion
-export function run<Args, Result>(obj: Facility<Args, Result>, args: Args): Promise<Result> {
+export function run<Args>(obj: Facility<Args>, args: Args): Promise<void> {
   return startup(obj, args).then(s => s.wait());
 }
 
-export function isActive<Args, Result>(obj: Facility<Args, Result>): boolean {
+export function isActive<Args>(obj: Facility<Args>): boolean {
   if (!obj.lifecycle) {
     return false;
   }
 
-  return obj.lifecycle._isActive();
+  return obj.lifecycle.isActive();
 }
 
-export function signalCompletion<Args, Result>(obj: Facility<Args, Result>, result: Result) {
+export function signalCompletion<Args>(obj: Facility<Args>) {
   if (!obj.lifecycle) {
     throw new Error('wtf');
   }
 
-  return obj.lifecycle._onComplete(result);
+  return obj.lifecycle.onComplete();
 }
 
-export function signalFailure<Args, Result>(obj: Facility<Args, Result>, error: mixed) {
+export function signalFailure<Args>(obj: Facility<Args>, error: mixed) {
   const err = wrapError(error);
 
   if (!obj.lifecycle) {
     throw new Error('wtf');
   }
 
-  return obj.lifecycle._onFailure(err);
+  return obj.lifecycle.onFailure(err);
 }

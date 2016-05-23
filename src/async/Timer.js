@@ -17,7 +17,7 @@ type Args = {
 
 class Timer {
 
-  lifecycle: ?Lifecycle<Args, void>;
+  lifecycle: ?Lifecycle<Args>;
   _shutdownSignal: Signal<void>; // signal that shutdown is requested
   _shutdownCompletedSignal: Signal<void>; // signal that shutdown is completed
   _shuttingDown: boolean;

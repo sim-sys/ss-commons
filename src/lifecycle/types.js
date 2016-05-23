@@ -7,21 +7,20 @@ import type Lifecycle from './Lifecycle.js';
 //  - should be started with some args;
 //  - can do some job;
 //  - can fail and die permanently;
-//  - can succeed and produce a result;
+//  - can succeed;
 //  - can be shut down gracefully.
 // So, it's  basically a process.
 // When it dies, there is no way to revive it,
 // so you should just move on and create other instances.
-export type Facility<Args, Result> = {
+export type Facility<Args> = {
   // lifecycle property should be declared, to
   // define associated types
-  lifecycle: ?Lifecycle<Args, Result>,
+  lifecycle: ?Lifecycle<Args>,
 
   // a hook to start the facility up
   startup: (args: Args) => Promise<void>,
 
-  // a hook to shutdown the facility gracefully,
-  // partial result may be provided
+  // a hook to shutdown the facility gracefully
   shutdown: () => Promise<void>
 };
 
