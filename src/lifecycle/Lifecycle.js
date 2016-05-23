@@ -38,11 +38,6 @@ class Lifecycle<Args, Result> {
 
     this._args = args;
 
-    if (!target.startup) {
-      this._state = ACTIVE;
-      return;
-    }
-
     try {
       this._state = STARTING_UP;
       await target.startup(args);
@@ -63,18 +58,12 @@ class Lifecycle<Args, Result> {
       throw new Error('wtf'); // TODO try and handle other cases
     }
 
-    if (!target.shutdown) {
-      this._state = SHUTDOWN;
-      return null;
-    }
-
     try {
       this._state = SHUTTING_DOWN;
-      const result = await target.shutdown();
+      await target.shutdown();
       this._state = SHUTDOWN;
     } catch (e) {
       this._state = SHUTDOWN;
-      this._shutdownSignal.fail(e);
       throw e;
     }
   }

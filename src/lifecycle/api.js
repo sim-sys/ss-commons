@@ -20,15 +20,20 @@ export function init<Args, Result>(obj: Facility<Args, Result>) {
 }
 
 
-export function startup<Args, Result>(obj: Facility<Args, Result>, args: Args): Promise<Signal<Result>> {
+export function startup<Args, Result>(
+  obj: Facility<Args, Result>,
+  args: Args
+): Promise<Signal<Result>> {
   if (!obj.lifecycle) {
-    obj.lifecycle = new Lifecycle(obj);
+    throw new Error('wtf'); // TODO
   }
 
   return obj.lifecycle._startup(args);
 }
 
-export function shutdown<Args, Result>(obj: Facility<Args, Result>, timeout?: number): Promise<?Result> {
+export function shutdown<Args, Result>(
+  obj: Facility<Args, Result> // TODO support timeouts/deadlines
+): Promise<?Result> {
   if (!obj.lifecycle) {
     throw new Error('wtf');
   }

@@ -37,15 +37,17 @@ class Timer {
   async start(args: Args) {
     const { fn, interval } = args;
 
-    while(!this._shuttingDown) {
+    while (!this._shuttingDown) {
       try {
         await fn();
       } catch (e) {
         signalFailure(this, e);
         return;
       }
+
       await sleep(interval, this._shutdownSignal.wait());
     }
+
     this._shutdownCompletedSignal.emit();
   }
 
