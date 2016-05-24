@@ -4,8 +4,7 @@ import type Lifecycle from '../lifecycle/Lifecycle.js';
 
 import {
   init,
-  signalFailure,
-  isShuttingDown
+  signalFailure
 } from '../lifecycle/api.js';
 
 import {

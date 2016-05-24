@@ -36,6 +36,7 @@ describe('Lifecycle', () => {
           state = lifecycle.state;
           done = true;
         },
+
         shutdown: () => Promise.resolve()
       };
 
@@ -53,6 +54,7 @@ describe('Lifecycle', () => {
         startup: async () => {
           throw new Error();
         },
+
         shutdown: () => Promise.resolve()
       };
 
