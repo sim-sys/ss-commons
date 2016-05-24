@@ -53,6 +53,14 @@ export function isActive<Args>(obj: Facility<Args>): boolean {
   return obj.lifecycle.isActive();
 }
 
+export function isShuttingDown<Args>(obj: Facility<Args>): boolean {
+  if (!obj.lifecycle) {
+    return false;
+  }
+
+  return obj.lifecycle.isShuttingDown();
+}
+
 export function signalCompletion<Args>(obj: Facility<Args>) {
   if (!obj.lifecycle) {
     throw new Error('wtf');

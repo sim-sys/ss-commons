@@ -62,8 +62,10 @@ class Lifecycle<Args> {
       this.state = SHUTTING_DOWN;
       await target.shutdown();
       this.state = SHUTDOWN;
+      this.shutdownSignal.emit();
     } catch (e) {
       this.state = SHUTDOWN;
+      this.shutdownSignal.fail(e); // TODO wrap error
       throw e;
     }
   }
@@ -89,6 +91,10 @@ class Lifecycle<Args> {
 
   isActive() {
     return this.state === ACTIVE;
+  }
+
+  isShuttingDown() {
+    return this.state === SHUTTING_DOWN;
   }
 
 }

@@ -4,8 +4,13 @@ import type Lifecycle from '../lifecycle/Lifecycle.js';
 
 import {
   init,
-  signalFailure
+  signalFailure,
+  isShuttingDown
 } from '../lifecycle/api.js';
+
+import {
+  unwrap
+} from '../utils/flow.js';
 
 import sleep from './sleep.js';
 import Signal from './Signal.js';
@@ -18,13 +23,12 @@ type Args = {
 class Timer {
 
   lifecycle: ?Lifecycle<Args>;
+  // TODO use lifecycle instead of custom signals
   _shutdownSignal: Signal<void>; // signal that shutdown is requested
   _shutdownCompletedSignal: Signal<void>; // signal that shutdown is completed
-  _shuttingDown: boolean;
 
   constructor() {
     init(this);
-    this._shuttingDown = false;
     this._shutdownSignal = new Signal();
     this._shutdownCompletedSignal = new Signal();
   }
@@ -36,8 +40,9 @@ class Timer {
 
   async start(args: Args) {
     const { fn, interval } = args;
+    const lifecycle = unwrap(this.lifecycle);
 
-    while (!this._shuttingDown) {
+    while (!lifecycle.isShuttingDown()) {
       try {
         await fn();
       } catch (e) {
@@ -52,7 +57,6 @@ class Timer {
   }
 
   async shutdown(): Promise<void> {
-    this._shuttingDown = true;
     this._shutdownSignal.emit();
     return this._shutdownCompletedSignal.wait();
   }
