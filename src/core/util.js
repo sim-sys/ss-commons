@@ -27,7 +27,7 @@ export function wrapError(err: mixed): Error {
   return new Error('Unknown error');
 }
 
-export function Success<T>(val: T): SuccessT {
+export function Success<T>(val: T): SuccessT<T> {
   return {
     success: true,
     val
@@ -35,16 +35,9 @@ export function Success<T>(val: T): SuccessT {
 }
 
 export function Failure(code: string, info?: ?{}, raw?: mixed): FailureT {
-  let stack = null;
-
-  if (raw && typeof raw.stack === 'string') {
-    stack = raw.stack;
-  }
-
   return {
     success: false,
     code,
-    stack,
     info,
     raw
   };
@@ -63,11 +56,14 @@ export function unwrapResult<T>(result: Result<T>): T {
   throw wrapError(result.raw || result.code);
 }
 
-
 export function wrapResult<T>(fn: () => T): Result<T> {
   try {
     return Success(fn());
   } catch (e) {
     return errorToFailure(e);
   }
+}
+
+export function wrapResultAsync<T>(fn: () => Promise<T>): Promise<Result<T>> {
+  return fn().then(Success, errorToFailure);
 }
