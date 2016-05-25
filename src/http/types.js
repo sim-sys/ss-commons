@@ -26,3 +26,7 @@ export type HttpResponse<Body> = {
   headers: HttpHeaders,
   body: Body
 };
+
+export type HttpClient<ReqBody, RepBody> = {
+  call(req: HttpRequest<ReqBody>): Promise<HttpResponse<RepBody>>;
+};
