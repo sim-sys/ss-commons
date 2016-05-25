@@ -76,6 +76,7 @@ class Lifecycle<Args> {
       throw new Error('wtf'); // TODO try and handle other cases
     }
 
+    this.state = SHUTDOWN;
     this.shutdownSignal.emit();
   }
 
@@ -86,6 +87,7 @@ class Lifecycle<Args> {
       throw new Error('wtf'); // TODO try and handle other cases
     }
 
+    this.state = SHUTDOWN;
     this.shutdownSignal.fail(err);
   }
 
