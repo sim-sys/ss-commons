@@ -1,7 +1,5 @@
 /* @flow */
 
-import Lifecycle from './Lifecycle.js';
-
 import {
   wrapError
 } from '../core/util.js';
@@ -15,28 +13,16 @@ import type {
 
 // doesn't do much, but can validate protocol conformance
 // earlier
-export function init<Args>(obj: Facility<Args>) {
-  obj.lifecycle = new Lifecycle(obj);
-}
-
 export function startup<Args>(
   obj: Facility<Args>,
   args: Args
 ): Promise<Signal<void>> {
-  if (!obj.lifecycle) {
-    throw new Error('wtf'); // TODO
-  }
-
   return obj.lifecycle.startup(args);
 }
 
 export function shutdown<Args>(
   obj: Facility<Args> // TODO support timeouts/deadlines
 ): Promise<void> {
-  if (!obj.lifecycle) {
-    throw new Error('wtf');
-  }
-
   return obj.lifecycle.shutdown();
 }
 

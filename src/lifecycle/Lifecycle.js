@@ -2,36 +2,34 @@
 
 import Signal from '../async/Signal.js';
 
-import type {
-  Facility
-} from './types.js';
-
 export const INIT = 0;
 export const STARTING_UP = 1;
 export const ACTIVE = 2;
 export const SHUTTING_DOWN = 3;
 export const SHUTDOWN = 4;
 
+type StartupFn<Args> = (args: Args, shutdown: Promise<void>) => void | Promise<void>;
+
 // Opaque object, that manages state of the facilility
 // since it's entirely opaque(=private), all fields are unprefixed
 // TODO need a way to hide method from consumers via flow
 class Lifecycle<Args> {
-  target: Facility<Args>; // managed object
+  _startupFn: StartupFn;
   state: number; // current state
   args: ?Args; // provided args
+  _shutdownRequestSignal: Signal<void>;
   shutdownSignal: Signal<void>;
 
-  constructor(target: Facility<Args>) {
-    this.target = target;
+  constructor(startupFn: StartupFn<Args>) {
+    this._startupFn = startupFn;
     this.state = INIT;
     this.args = null;
     this.shutdownSignal = new Signal();
+    this._shutdownRequestSignal = new Signal();
   }
 
   // startup the facility
   async startup(args: Args): Promise<Signal<void>> {
-    const target = this.target;
-
     if (this.state !== INIT) {
       throw new Error('wtf'); // TODO try and handle other cases
     }
@@ -40,7 +38,8 @@ class Lifecycle<Args> {
 
     try {
       this.state = STARTING_UP;
-      await target.startup(args);
+      const startupFn = this._startupFn;
+      await startupFn(args, this._shutdownRequestSignal.wait());
       this.state = ACTIVE;
     } catch (e) {
       this.state = SHUTDOWN;
@@ -50,29 +49,21 @@ class Lifecycle<Args> {
     return this.shutdownSignal;
   }
 
-  // externally shutdown facility, may be produce result or may not
+  // request shutdown
   async shutdown(): Promise<void> {
-    const target = this.target;
-
     if (this.state !== ACTIVE) {
       throw new Error('wtf'); // TODO try and handle other cases
     }
 
-    try {
-      this.state = SHUTTING_DOWN;
-      await target.shutdown();
-      this.state = SHUTDOWN;
-      this.shutdownSignal.emit();
-    } catch (e) {
-      this.state = SHUTDOWN;
-      this.shutdownSignal.fail(e); // TODO wrap error
-      throw e;
-    }
+    this.state = SHUTTING_DOWN;
+    this._shutdownRequestSignal.emit();
+
+    return this.shutdownSignal.wait();
   }
 
   // signal that facility is done doing things successfully
   onComplete() {
-    if (this.state !== ACTIVE) {
+    if (this.state !== ACTIVE && this.state !== SHUTTING_DOWN) {
       throw new Error('wtf'); // TODO try and handle other cases
     }
 

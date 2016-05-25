@@ -15,14 +15,5 @@ import type Lifecycle from './Lifecycle.js';
 export type Facility<Args> = {
   // lifecycle property should be declared, to
   // define associated types
-  lifecycle: ?Lifecycle<Args>,
-
-  // a hook to start the facility up
-  startup: (args: Args) => Promise<void>,
-
-  // a hook to shutdown the facility gracefully
-  shutdown: () => Promise<void>
+  lifecycle: Lifecycle<Args>,
 };
-
-// TODO hooks should be optional, but it seems impossible to satisfy
-// with types + classes at the time
