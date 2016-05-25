@@ -1,5 +1,4 @@
 eslint := node_modules/.bin/eslint
-jscs := node_modules/.bin/jscs
 flow := node_modules/.bin/flow
 babel := node_modules/.bin/babel
 babel-node := node_modules/.bin/babel-node
@@ -28,7 +27,6 @@ $(foreach i,$(SCRIPTS), $(eval $(call SCRIPT,$(i))))
 
 lint:
 	$(eslint) src
-	$(jscs) src
 
 flow:
 	$(flow) check --no-flowlib
