@@ -4,7 +4,7 @@ import Lifecycle from './Lifecycle.js';
 
 import {
   wrapError
-} from './util.js';
+} from '../core/util.js';
 
 import type Signal from '../async/Signal.js';
 

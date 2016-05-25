@@ -9,7 +9,7 @@ import {
 
 import {
   unwrap
-} from '../utils/flow.js';
+} from '../core/util.js';
 
 import sleep from './sleep.js';
 import Signal from './Signal.js';
