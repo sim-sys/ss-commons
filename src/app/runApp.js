@@ -4,17 +4,12 @@ import type {
   Facility
 } from '../lifecycle/types.js';
 
-import {
-  startup,
-  shutdown
-} from '../lifecycle/api.js';
-
 let running = false;
 
-async function actuallyRunApp(app: Facility) {
+async function actuallyRunApp(app: Facility<void>) {
   function shutdownApp() {
     // TODO handle errors
-    shutdown(app);
+    app.lifecycle.shutdown();
   }
 
   process.once('SIGTERM', shutdownApp);
@@ -22,7 +17,7 @@ async function actuallyRunApp(app: Facility) {
   process.once('uncaughtException', shutdownApp);
   process.once('unhandledRejection', shutdownApp);
 
-  const s = await startup(app); // TODO cli args?
+  const s = await app.lifecycle.startup(); // TODO cli args?
 
   try {
     await s.wait();

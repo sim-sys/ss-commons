@@ -24,13 +24,13 @@ describe('Lifecycle', () => {
       let done = false;
       let state = null;
       const lifecycle = new Lifecycle(async () => {
-        state = lifecycle.state;
+        state = lifecycle._state;
         done = true;
       });
       const signal = await lifecycle.startup();
       expect(done).to.be.equal(true);
       expect(state).to.be.equal(STARTING_UP);
-      expect(lifecycle.state).to.be.equal(ACTIVE);
+      expect(lifecycle._state).to.be.equal(ACTIVE);
       expect(signal).to.be.instanceOf(Signal);
     });
 
@@ -40,7 +40,7 @@ describe('Lifecycle', () => {
       });
       const err = await lifecycle.startup().catch(e => e);
       expect(err).to.be.an.instanceOf(Error);
-      expect(lifecycle.state).to.be.equal(SHUTDOWN);
+      expect(lifecycle._state).to.be.equal(SHUTDOWN);
     });
   });
 
@@ -50,7 +50,7 @@ describe('Lifecycle', () => {
       let state = null;
       const lifecycle = new Lifecycle((arg, onShutdown) => {
         onShutdown.then(() => {
-          state = lifecycle.state;
+          state = lifecycle._state;
           done = true;
           lifecycle.onComplete();
         });
@@ -61,7 +61,7 @@ describe('Lifecycle', () => {
 
       expect(done).to.be.equal(true);
       expect(state).to.be.equal(SHUTTING_DOWN);
-      expect(lifecycle.state).to.be.equal(SHUTDOWN);
+      expect(lifecycle._state).to.be.equal(SHUTDOWN);
 
       await signal.wait();
     });

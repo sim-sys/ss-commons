@@ -5,11 +5,6 @@ import {
 } from 'chai';
 
 import Timer from '../Timer.js';
-import {
-  startup,
-  shutdown,
-  isActive
-} from '../../lifecycle/api.js';
 
 describe('Timer', () => {
   it('should work', async () => {
@@ -25,12 +20,12 @@ describe('Timer', () => {
       fn: () => {
         i++;
         if (i === 3) {
-          shutdown(timer);
+          timer.lifecycle.shutdown();
         }
       }
     };
 
-    const s = await startup(timer, args);
+    const s = await timer.lifecycle.startup(args);
 
     await s.wait();
 
@@ -50,9 +45,9 @@ describe('Timer', () => {
       }
     };
 
-    const s = await startup(timer, args);
+    const s = await timer.lifecycle.startup(args);
     const e = await s.wait().catch(e => e);
     expect(e).to.be.an.instanceOf(Error);
-    expect(isActive(timer)).to.be.equal(false);
+    expect(timer.lifecycle.isActive()).to.be.equal(false);
   });
 });
