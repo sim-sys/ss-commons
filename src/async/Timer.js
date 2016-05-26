@@ -1,7 +1,7 @@
 /* @flow */
 
 import Lifecycle from '../lifecycle/Lifecycle.js';
-import sleep from './sleep.js';
+import Sleeper from './Sleeper.js';
 
 type Args = {
   interval: number,
@@ -20,6 +20,8 @@ class Timer {
     const { fn, interval } = args;
     const lifecycle = this.lifecycle;
 
+    const sleeper = new Sleeper(onShutdown);
+
     while (!lifecycle.isShuttingDown()) {
       try {
         await fn();
@@ -28,9 +30,7 @@ class Timer {
         return;
       }
 
-      // TODO this probably leaks memory, because we keep
-      // adding handlers to onShutdown promise
-      await sleep(interval, onShutdown);
+      await sleeper.sleep(interval);
     }
 
     lifecycle.onComplete();
