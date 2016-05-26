@@ -25,8 +25,12 @@ class Lifecycle<Args> {
 
   // startup the facility
   async startup(args: Args): Promise<Signal<void>> {
+    if (this._state === STARTING_UP || this._state === ACTIVE) {
+      return this._shutdownSignal;
+    }
+
     if (this._state !== INIT) {
-      throw new Error('wtf'); // TODO try and handle other cases
+      throw new Error('Can not start up lifecycle that is already shut down');
     }
 
     try {
@@ -44,8 +48,12 @@ class Lifecycle<Args> {
 
   // request shutdown
   shutdown() {
-    if (this._state !== ACTIVE) {
-      throw new Error('wtf'); // TODO try and handle other cases
+    if (this._state === INIT || this._state === STARTING_UP) {
+      throw new Error('Can not shutdown lifecycle that is not started up');
+    }
+
+    if (this._state === SHUTTING_DOWN || this._state === SHUTDOWN) {
+      return;
     }
 
     this._state = SHUTTING_DOWN;
@@ -54,8 +62,9 @@ class Lifecycle<Args> {
 
   // signal that facility is done doing things successfully
   onComplete() {
-    if (this._state !== ACTIVE && this._state !== SHUTTING_DOWN) {
-      throw new Error('wtf'); // TODO try and handle other cases
+    // TODO throwing may be not the best option
+    if (this._state !== ACTIVE && this._state !== SHUTTING_DOWN && this._state !== SHUTDOWN) {
+      throw new Error('Can not complete lifecycle this is not started up');
     }
 
     this._state = SHUTDOWN;

@@ -56,14 +56,13 @@ describe('Lifecycle', () => {
         });
       });
       const signal = await lifecycle.startup();
-      await lifecycle.shutdown();
+      lifecycle.shutdown();
 
+      await signal.wait();
 
       expect(done).to.be.equal(true);
       expect(state).to.be.equal(SHUTTING_DOWN);
       expect(lifecycle._state).to.be.equal(SHUTDOWN);
-
-      await signal.wait();
     });
   });
 });
