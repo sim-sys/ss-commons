@@ -6,7 +6,12 @@ import type {
 
 let running = false;
 
-async function actuallyRunApp(app: Facility<void>) {
+type Process = {
+  once(e: string, fn: Function): any,
+  exit(code?: number): void
+};
+
+async function actuallyRunApp(app: Facility<void>, process: Process) {
   function shutdownApp() {
     // TODO handle errors
     app.lifecycle.shutdown();
@@ -30,10 +35,16 @@ async function actuallyRunApp(app: Facility<void>) {
 }
 
 
-export function runApp(app: Facility) {
+export function almostRunApp(app: Facility, process: Process) {
   if (running) {
     throw new Error('Only one app per process is allowed');
   }
   running = true;
-  actuallyRunApp(app);
+  actuallyRunApp(app, process);
 }
+
+function runApp(app: Facility) {
+  almostRunApp(app, process);
+}
+
+export default runApp;
