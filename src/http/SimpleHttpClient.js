@@ -16,7 +16,8 @@ import type {
 } from './types.js';
 
 import {
-  normalizeHeaders
+  normalizeHeaders,
+  bufferReadableStream
 } from './util.js';
 
 type Config = {
@@ -64,7 +65,9 @@ class SimpleHttpClient {
 
   constructor(config: MaybeConfig) {
     this.config = parseConfig(config);
-    this._agent = this.config.secure ? new (https: any).Agent() : new (http: any).globalAgent();
+    this._agent = this.config.secure ?
+      new (https: any).Agent() :
+      new (http: any).Agent({ keepAlive: true });
   }
 
   async call(req: HttpRequest<?Buffer>): Promise<HttpResponse<?Buffer>> {
@@ -99,23 +102,8 @@ class SimpleHttpClient {
 
     const nodeRes = await s.wait();
 
-    const r = new Signal();
-
-    const buffers: Array<Buffer> = [];
-
-    nodeRes.on('data', buffer => {
-      buffers.push(buffer);
-    });
-
-    nodeRes.on('end', () => r.emit());
-
-    await r.wait();
-
-    let body = null;
-
-    if (buffers.length !== 0) {
-      body = Buffer.concat(buffers);
-    }
+    // TODO limit max body size
+    const body = await bufferReadableStream(nodeRes);
 
     return {
       statusCode: nodeRes.statusCode,

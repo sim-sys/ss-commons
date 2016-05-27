@@ -675,6 +675,7 @@ declare class http$ClientRequest extends stream$Writable {
 declare module "http" {
   declare class Server extends net$Server {
     listen(port: number, hostname?: string, backlog?: number, callback?: Function): Server;
+    listen(port: number, hostname?: string, callback?: Function): Server;
     listen(path: string, callback?: Function): Server;
     listen(handle: Object, callback?: Function): Server;
     close(callback?: Function): Server;
