@@ -3,10 +3,6 @@
 import { EventEmitter } from 'events';
 
 import {
-  expect
-} from 'chai';
-
-import {
   almostRunApp
 } from '../runApp.js';
 
@@ -14,7 +10,7 @@ import Lifecycle from '../../lifecycle/Lifecycle.js';
 
 
 class MockProcess extends EventEmitter {
-  exit(code?: number) {}
+  exit() {}
 }
 
 

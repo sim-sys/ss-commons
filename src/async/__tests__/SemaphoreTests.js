@@ -26,7 +26,7 @@ describe('Semaphore', () => {
   it('should limit concurrency', async () => {
     const concurrency = 4;
     const s = new Semaphore(concurrency);
-    let n = 40;
+    const n = 40;
     let c = 0;
     let max = 0;
 
