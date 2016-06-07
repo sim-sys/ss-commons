@@ -1,23 +1,27 @@
 /* @flow */
 
-import {
-  expect
-} from 'chai';
+import assert from 'assert';
+import { convertToMocha } from '../../testing/util.js';
 
 import sleep from '../sleep.js';
 
-describe('sleep', () => {
-  it('should work', async () => {
+class SleepTests {
+  async testSleep() {
     const start = Date.now();
     await sleep(10);
     const passed = Date.now() - start;
-    expect(passed >= 10).to.be.equal(true);
-  });
+    assert(passed >= 10);
+  }
 
-  it('should be interruptible', async () => {
+  async testInterrupt() {
     const start = Date.now();
     await sleep(10, sleep(5));
     const passed = Date.now() - start;
-    expect(passed < 10).to.be.equal(true);
-  });
-});
+    assert(passed < 10);
+  }
+}
+
+
+convertToMocha(new SleepTests());
+
+export default SleepTests;

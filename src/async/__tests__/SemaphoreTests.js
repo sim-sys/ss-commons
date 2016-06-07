@@ -1,14 +1,14 @@
 /* @flow */
 
-import {
-  expect
-} from 'chai';
+import assert from 'assert';
 
 import Semaphore from '../Semaphore.js';
 import sleep from '../sleep.js';
 
-describe('Semaphore', () => {
-  it('should work', async () => {
+import { convertToMocha } from '../../testing/util.js';
+
+class SemaphoreTests {
+  async testSemaphore() {
     const s = new Semaphore(4);
     let done = false;
 
@@ -20,10 +20,10 @@ describe('Semaphore', () => {
     await s.acquire(1);
     await s.acquire(4);
 
-    expect(done).to.be.equal(true);
-  });
+    assert.ok(done);
+  }
 
-  it('should limit concurrency', async () => {
+  async testConcurrency() {
     const concurrency = 4;
     const s = new Semaphore(concurrency);
     const n = 40;
@@ -42,6 +42,10 @@ describe('Semaphore', () => {
     }
 
     await s.acquire(concurrency);
-    expect(max).to.be.equal(concurrency);
-  });
-});
+    assert.equal(max, concurrency);
+  }
+}
+
+convertToMocha(new SemaphoreTests());
+
+export default SemaphoreTests;

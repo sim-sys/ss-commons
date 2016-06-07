@@ -1,22 +1,25 @@
 /* @flow */
 
-import {
-  expect
-} from 'chai';
+import assert from 'assert';
+import { convertToMocha } from '../../testing/util.js';
 
 import Signal from '../Signal.js';
 
-describe('Signal', () => {
-  it('should work', async () => {
+class SignalTests {
+  async testSignal() {
     const s = new Signal();
     process.nextTick(() => s.emit());
     await s.wait();
-  });
+  }
 
-  it('should be able to fail', async () => {
+  async testFail() {
     const s = new Signal();
     process.nextTick(() => s.fail(new Error()));
     const err = await s.wait().catch(e => e);
-    expect(err).to.be.instanceOf(Error);
-  });
-});
+    assert(err instanceof Error);
+  }
+}
+
+convertToMocha(new SignalTests());
+
+export default SignalTests;

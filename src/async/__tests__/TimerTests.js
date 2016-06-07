@@ -1,18 +1,17 @@
 /* @flow */
 
-import {
-  expect
-} from 'chai';
+import assert from 'assert';
+import { convertToMocha } from '../../testing/util.js';
 
 import Timer from '../Timer.js';
 
-describe('Timer', () => {
-  it('should work', async () => {
+class TimerTests {
+  async testTimer() {
     const timer = new Timer();
-    expect(timer).to.be.an.instanceOf(Timer);
-  });
+    assert(timer instanceof Timer);
+  }
 
-  it('should run task periodically', async () => {
+  async testTimerRun() {
     const timer = new Timer();
     let i = 0;
     const args = {
@@ -29,10 +28,10 @@ describe('Timer', () => {
 
     await s.wait();
 
-    expect(i).to.be.equal(3);
-  });
+    assert.equal(i, 3);
+  }
 
-  it('should stop on error', async () => {
+  async testError() {
     const timer = new Timer();
     let i = 0;
     const args = {
@@ -47,7 +46,11 @@ describe('Timer', () => {
 
     const s = await timer.lifecycle.startup(args);
     const e = await s.wait().catch(e => e);
-    expect(e).to.be.an.instanceOf(Error);
-    expect(timer.lifecycle.isActive()).to.be.equal(false);
-  });
-});
+    assert(e instanceof Error);
+    assert.equal(timer.lifecycle.isActive(), false);
+  }
+}
+
+convertToMocha(new TimerTests());
+
+export default TimerTests;
