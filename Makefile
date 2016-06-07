@@ -1,11 +1,11 @@
-eslint := node_modules/.bin/eslint
-flow := node_modules/.bin/flow
-babel := node_modules/.bin/babel
-babel-node := node_modules/.bin/babel-node
-mocha := node_modules/.bin/mocha
-_mocha := node_modules/.bin/_mocha
-babel-external-helpers := node_modules/.bin/babel-external-helpers
-istanbul := node_modules/.bin/istanbul
+eslint := tools/node_modules/.bin/eslint
+flow := tools/node_modules/.bin/flow
+babel := tools/node_modules/.bin/babel
+babel-node := tools/node_modules/.bin/babel-node
+mocha := tools/node_modules/.bin/mocha
+_mocha := tools/node_modules/.bin/_mocha
+babel-external-helpers := tools/node_modules/.bin/babel-external-helpers
+istanbul := tools/node_modules/.bin/istanbul
 
 
 SCRIPT_FILES = $(wildcard scripts/*.js)
@@ -61,4 +61,8 @@ clean:
 	@rm -rf src-compiled-cover
 	@rm -rf cover
 
-.PHONY: clean test lint flow compile compile-test compile-cover all cover run.%
+install:
+	npm install
+	cd tool && npm install
+
+.PHONY: clean test lint flow compile compile-test compile-cover all cover run.% install

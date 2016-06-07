@@ -4,6 +4,7 @@
 .*/src-compiled/.*
 .*/src-compiled-cover/.*
 .*/src-compiled-test/.*
+.*/tools/.*
 
 [include]
 
