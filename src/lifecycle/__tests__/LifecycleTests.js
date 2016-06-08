@@ -1,8 +1,7 @@
 /* @flow */
 
-import {
-  expect
-} from 'chai';
+import assert from 'assert';
+import { convertToMocha } from '../../testing/util.js';
 
 import Lifecycle, {
   STARTING_UP,
@@ -13,56 +12,56 @@ import Lifecycle, {
 
 import Signal from '../../async/Signal.js';
 
-describe('Lifecycle', () => {
-  it('should work', async () => {
+class LifecycleTests {
+  testLifecycle() {
     const lifecycle = new Lifecycle(() => {});
-    expect(lifecycle).to.be.an.instanceOf(Lifecycle);
-  });
+    assert(lifecycle instanceof Lifecycle);
+  }
 
-  describe('startup', () => {
-    it('should startup object', async () => {
-      let done = false;
-      let state = null;
-      const lifecycle = new Lifecycle(async () => {
+  async testStartup() {
+    let done = false;
+    let state = null;
+    const lifecycle = new Lifecycle(async () => {
+      state = lifecycle._state;
+      done = true;
+    });
+    const signal = await lifecycle.startup();
+    assert(done);
+    assert.equal(state, STARTING_UP);
+    assert.equal(lifecycle._state, ACTIVE);
+    assert(signal instanceof Signal);
+  }
+
+  async testStartupFailure() {
+    const lifecycle = new Lifecycle(async () => {
+      throw new Error();
+    });
+    const err = await lifecycle.startup().catch(e => e);
+    assert(err instanceof Error);
+    assert.equal(lifecycle._state, SHUTDOWN);
+  }
+
+  async testShutdown() {
+    let done = false;
+    let state = null;
+    const lifecycle = new Lifecycle((arg, onShutdown) => {
+      onShutdown.then(() => {
         state = lifecycle._state;
         done = true;
+        lifecycle.onComplete();
       });
-      const signal = await lifecycle.startup();
-      expect(done).to.be.equal(true);
-      expect(state).to.be.equal(STARTING_UP);
-      expect(lifecycle._state).to.be.equal(ACTIVE);
-      expect(signal).to.be.instanceOf(Signal);
     });
+    const signal = await lifecycle.startup();
+    lifecycle.shutdown();
 
-    it('should handle failure', async () => {
-      const lifecycle = new Lifecycle(async () => {
-        throw new Error();
-      });
-      const err = await lifecycle.startup().catch(e => e);
-      expect(err).to.be.an.instanceOf(Error);
-      expect(lifecycle._state).to.be.equal(SHUTDOWN);
-    });
-  });
+    await signal.wait();
 
-  describe('shutdown', () => {
-    it('should shutdown object', async () => {
-      let done = false;
-      let state = null;
-      const lifecycle = new Lifecycle((arg, onShutdown) => {
-        onShutdown.then(() => {
-          state = lifecycle._state;
-          done = true;
-          lifecycle.onComplete();
-        });
-      });
-      const signal = await lifecycle.startup();
-      lifecycle.shutdown();
+    assert(done);
+    assert.equal(state, SHUTTING_DOWN);
+    assert.equal(lifecycle._state, SHUTDOWN);
+  }
+}
 
-      await signal.wait();
+convertToMocha(new LifecycleTests());
 
-      expect(done).to.be.equal(true);
-      expect(state).to.be.equal(SHUTTING_DOWN);
-      expect(lifecycle._state).to.be.equal(SHUTDOWN);
-    });
-  });
-});
+export default LifecycleTests;

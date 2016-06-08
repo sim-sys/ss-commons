@@ -2,9 +2,8 @@
 
 import http from 'http';
 
-import {
-  expect
-} from 'chai';
+import assert from 'assert';
+import { convertToMocha } from '../../testing/util.js';
 
 import Signal from '../../async/Signal.js';
 import { bufferReadableStream } from '../util.js';
@@ -13,8 +12,8 @@ import SimpleHttpClient from '../SimpleHttpClient.js';
 
 const PORT = 11111;
 
-describe('SimpleHttpClient', () => {
-  it('should work', async () => {
+class SimpleHttpClientTests {
+  async testHttpClient() {
     let serverReq: any = null;
     let serverRes: any = null;
     let socketClosed = false;
@@ -63,17 +62,21 @@ describe('SimpleHttpClient', () => {
 
     const rep = await repPromise;
 
-    expect(rep.statusCode).to.be.equal(401);
-    expect((rep.body: any).toString()).to.be.equal('Hello');
-    expect(rep.headers['content-type']).to.be.equal('text/plain');
+    assert.equal(rep.statusCode, 401);
+    assert.equal((rep.body: any).toString(), 'Hello');
+    assert.equal(rep.headers['content-type'], 'text/plain');
 
-    expect(serverReq.method).to.be.equal('POST');
-    expect(serverReq.headers.foo).to.be.equal('bar');
-    expect(serverReq.headers['content-length']).to.be.equal('3');
-    expect(serverReq.url).to.be.equal('/foobar');
-    expect(serverBody.toString()).to.be.equal('foo');
+    assert.equal(serverReq.method, 'POST');
+    assert.equal(serverReq.headers.foo, 'bar');
+    assert.equal(serverReq.headers['content-length'], '3');
+    assert.equal(serverReq.url, '/foobar');
+    assert.equal(serverBody.toString(), 'foo');
 
-    expect(serverReq.headers['connection']).to.be.equal('keep-alive');
-    expect(socketClosed).to.be.equal(false);
-  });
-});
+    assert.equal(serverReq.headers['connection'], 'keep-alive');
+    assert.equal(socketClosed, false);
+  }
+}
+
+convertToMocha(new SimpleHttpClientTests());
+
+export default SimpleHttpClient;
