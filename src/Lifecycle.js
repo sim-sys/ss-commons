@@ -8,15 +8,14 @@ export const ACTIVE = 2;
 export const SHUTTING_DOWN = 3;
 export const SHUTDOWN = 4;
 
-type StartupFn<Args> = (
-  args: Args,
+type StartupFn = (
   onShutdown: () => void,
   onFailure: (err: Error) => void
 ) => void | Promise<void>;
 
 type ShutdownFn = () => void;
 
-class Lifecycle<Args> {
+class Lifecycle {
   _startupFn: StartupFn;
   _shutdownFn: ShutdownFn;
   _state: number; // current state
@@ -25,7 +24,7 @@ class Lifecycle<Args> {
   _startupSignal: Signal<void>;
   onShutdown: Promise<void>;
 
-  constructor(startupFn: StartupFn<Args>, shutdownFn: ShutdownFn) {
+  constructor(startupFn: StartupFn, shutdownFn: ShutdownFn) {
     this._startupFn = startupFn;
     this._shutdownFn = shutdownFn;
     this._state = INIT;
@@ -35,7 +34,7 @@ class Lifecycle<Args> {
     this.onShutdown = this._shutdownSignal.wait();
   }
 
-  async startup(args: Args): Promise<void> {
+  async startup(): Promise<void> {
     const state = this._state;
 
     if (state === ACTIVE) {
@@ -54,7 +53,7 @@ class Lifecycle<Args> {
     try {
       this._state = STARTING_UP;
       const startupFn = this._startupFn;
-      await startupFn(args, () => this.onComplete(), err => this.onFailure(err));
+      await startupFn(() => this.onComplete(), err => this.onFailure(err));
       this._state = ACTIVE;
     } catch (e) {
       this._state = SHUTDOWN;

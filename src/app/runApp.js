@@ -9,11 +9,11 @@ type Process = {
   exit(code?: number): void
 };
 
-type Facility<T> = {
-  lifecycle: Lifecycle<T>
+type Facility = {
+  lifecycle: Lifecycle
 };
 
-async function actuallyRunApp(app: Facility<void>, process: Process) {
+async function actuallyRunApp(app: Facility, process: Process) {
   function shutdownApp() {
     // TODO handle errors
     app.lifecycle.shutdown();
