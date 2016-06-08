@@ -15,18 +15,6 @@ export function unwrap<T>(val: ?T): T {
   return val;
 }
 
-export function wrapError(err: mixed): Error {
-  if (err instanceof Error) {
-    return err;
-  }
-
-  if (typeof err === 'string') {
-    return new Error(err);
-  }
-
-  return new Error('Unknown error');
-}
-
 export function Success<T>(val: T): SuccessT<T> {
   return {
     success: true,
@@ -34,36 +22,18 @@ export function Success<T>(val: T): SuccessT<T> {
   };
 }
 
-export function Failure(code: string, info?: ?{}, raw?: mixed): FailureT {
+export function Failure<E>(err: E): FailureT<E> {
   return {
     success: false,
-    code,
-    info,
-    raw
+    err
   };
 }
 
-export function errorToFailure(err: mixed): FailureT {
-  return Failure('ERROR', null, err);
-}
 
-
-export function unwrapResult<T>(result: Result<T>): T {
-  if (result.success) {
-    return result.val;
+export function unwrapSuccess<T, E>(result: Result<T, E>): T {
+  if (!result.success) {
+    throw new Error('Failed to unwrap Success');
   }
 
-  throw wrapError(result.raw || result.code);
-}
-
-export function wrapResult<T>(fn: () => T): Result<T> {
-  try {
-    return Success(fn());
-  } catch (e) {
-    return errorToFailure(e);
-  }
-}
-
-export function wrapResultAsync<T>(fn: () => Promise<T>): Promise<Result<T>> {
-  return fn().then(Success, errorToFailure);
+  return result.val;
 }

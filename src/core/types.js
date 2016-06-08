@@ -5,14 +5,14 @@ export type Success<T> = {
   val: T
 };
 
-export type Failure = {
+export type Failure<E> = {
   success: false,
-  code: string, // static string that represents type of failure, could be a enum in some domain
-  info: ?{}, // a collection of values, related to failure
-  raw: ?mixed // raw value, such as an instance of Error
-}
+  err: E
+};
 
-export type Result<T> =
+export type Result<T, E> =
   | Success<T>
-  | Failure
+  | Failure<E>
 ;
+
+export type PResult<T, E> = Promise<Result<T, E>>;
