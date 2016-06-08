@@ -33,7 +33,7 @@ flow:
 
 compile:
 	@rm -rf src-compiled
-	$(babel) src --ignore __tests__ --out-dir src-compiled --copy-files
+	$(babel) src --ignore __tests__ --out-dir src-compiled
 
 compile-test:
 	@rm -rf src-compiled-test
@@ -65,4 +65,12 @@ install:
 	npm install
 	cd tool && npm install
 
-.PHONY: clean test lint flow compile compile-test compile-cover all cover run.% install
+dist: compile
+	@rm -rf dist
+	@mkdir -p dist
+	@cp -r src-compiled dist/src-compiled
+	@cp -r src dist/src
+	@find dist/src -name '__tests__' | xargs rm -r
+	@cp index.js index.js.flow package.json dist
+
+.PHONY: clean test lint flow compile compile-test compile-cover all cover run.% install dist

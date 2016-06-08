@@ -4,3 +4,4 @@ src-compiled-cover
 src-compiled-test
 babel-helpers.js
 coverage
+dist
