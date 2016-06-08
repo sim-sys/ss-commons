@@ -12,7 +12,7 @@ class SleeperTests {
     const sleeper = new Sleeper(new Promise(() => {}));
     await sleeper.sleep(10);
     const passed = Date.now() - start;
-    assert(passed >= 10)
+    assert(passed >= 10);
   }
 
   async testInterrupt() {
