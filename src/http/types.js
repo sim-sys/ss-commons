@@ -11,7 +11,7 @@ export type HttpMethod =
 ;
 
 export type HttpHeaders = {
-  [key: string]: ?string
+  [key: string]: ?(string | Array<string>) // TODO this is not ideal
 };
 
 export type HttpRequest<Body> = {
