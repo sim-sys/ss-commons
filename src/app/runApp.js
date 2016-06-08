@@ -1,14 +1,16 @@
 /* @flow */
 
-import type {
-  Facility
-} from '../lifecycle/types.js';
+import type Lifecycle from '../Lifecycle.js';
 
 let running = false;
 
 type Process = {
   once(e: string, fn: Function): any,
   exit(code?: number): void
+};
+
+type Facility<T> = {
+  lifecycle: Lifecycle<T>
 };
 
 async function actuallyRunApp(app: Facility<void>, process: Process) {

@@ -9,7 +9,7 @@ import Lifecycle, {
   SHUTDOWN
 } from '../Lifecycle.js';
 
-import Signal from '../../async/Signal.js';
+import Signal from '../async/Signal.js';
 
 class LifecycleTests {
   testLifecycle() {

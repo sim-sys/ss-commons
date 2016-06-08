@@ -1,6 +1,6 @@
 /* @flow */
 
-import Signal from '../async/Signal.js';
+import Signal from './async/Signal.js';
 
 export const INIT = 0;
 export const STARTING_UP = 1;

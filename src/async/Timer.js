@@ -1,6 +1,6 @@
 /* @flow */
 
-import Lifecycle from '../lifecycle/Lifecycle.js';
+import Lifecycle from '../Lifecycle.js';
 import Sleeper from './Sleeper.js';
 
 type Args = {

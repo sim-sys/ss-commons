@@ -6,7 +6,7 @@ import {
   almostRunApp
 } from '../runApp.js';
 
-import Lifecycle from '../../lifecycle/Lifecycle.js';
+import Lifecycle from '../../Lifecycle.js';
 
 
 class MockProcess extends EventEmitter {
