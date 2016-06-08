@@ -18,9 +18,8 @@ class Lifecycle {
   _onShutdownFn: OnShutdown;
   _onFailureFn: OnFailure;
   _state: number; // current state
-  _shutdownRequestSignal: Signal<void>;
   _shutdownSignal: Signal<void>;
-  _startupSignal: Signal<void>;
+  _startupSignal: ?Signal<void>;
   onShutdown: Promise<void>;
 
   constructor(startupFn: HookFn, shutdownFn: HookFn) {
@@ -31,9 +30,8 @@ class Lifecycle {
     this._onFailureFn = (err) => this._onFailure(err);
 
     this._state = INIT;
-    this._startupSignal = new Signal();
+    this._startupSignal = null;
     this._shutdownSignal = new Signal();
-    this._shutdownRequestSignal = new Signal();
     this.onShutdown = this._shutdownSignal.wait();
   }
 
@@ -45,6 +43,10 @@ class Lifecycle {
     }
 
     if (state === STARTING_UP) {
+      if (!this._startupSignal) {
+        this._startupSignal = new Signal();
+      }
+
       this._startupSignal.wait();
       return;
     }
@@ -64,8 +66,10 @@ class Lifecycle {
       throw e;
     }
 
-    this._startupSignal.emit();
-    return;
+    if (this._startupSignal) {
+      this._startupSignal.emit();
+      this._startupSignal = null;
+    }
   }
 
   shutdown() {
@@ -76,7 +80,6 @@ class Lifecycle {
     if (this._state === SHUTTING_DOWN || this._state === SHUTDOWN) {
       return;
     }
-
 
     try {
       this._state = SHUTTING_DOWN;
