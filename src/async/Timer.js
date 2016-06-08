@@ -16,8 +16,8 @@ class Timer {
   _args: ?Args;
   constructor() {
     const shutdownSignal = new Signal();
-    this.lifecycle = new Lifecycle((args) => {
-      this._run(unwrap(this._args), shutdownSignal.wait());
+    this.lifecycle = new Lifecycle((onShutdown, onFailure) => {
+      this._run(unwrap(this._args), shutdownSignal.wait(), onShutdown, onFailure);
     }, () => {
       shutdownSignal.emit();
     });
@@ -28,24 +28,29 @@ class Timer {
     this.lifecycle.startup();
   }
 
-  async _run(args: Args, onShutdown: Promise<void>) {
+  async _run(
+    args: Args,
+    shutdownPromise: Promise<void>,
+    onShutdown: () => void,
+    onFailure: (err: Error) => void
+  ) {
     const { fn, interval } = args;
     const lifecycle = this.lifecycle;
 
-    const sleeper = new Sleeper(onShutdown);
+    const sleeper = new Sleeper(shutdownPromise);
 
     while (!lifecycle.isShuttingDown()) {
       try {
         await fn();
       } catch (e) {
-        lifecycle.onFailure(e);
+        onFailure(e);
         return;
       }
 
       await sleeper.sleep(interval);
     }
 
-    lifecycle.onComplete();
+    onShutdown();
   }
 }
 

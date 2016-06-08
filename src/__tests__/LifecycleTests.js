@@ -40,10 +40,10 @@ class LifecycleTests {
   async testShutdown() {
     let done = false;
     let state = null;
-    const lifecycle = new Lifecycle(() => {}, () => {
+    const lifecycle = new Lifecycle(() => {}, onShutdown => {
       state = lifecycle._state;
       done = true;
-      lifecycle.onComplete();
+      onShutdown();
     });
 
     await lifecycle.startup();

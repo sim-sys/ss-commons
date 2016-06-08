@@ -8,25 +8,28 @@ export const ACTIVE = 2;
 export const SHUTTING_DOWN = 3;
 export const SHUTDOWN = 4;
 
-type StartupFn = (
-  onShutdown: () => void,
-  onFailure: (err: Error) => void
-) => void | Promise<void>;
-
-type ShutdownFn = () => void;
+type OnShutdown = () => void;
+type OnFailure = (err: Error) => void;
+type HookFn = (onShutdown: OnShutdown, onFailure: OnFailure) => void | Promise<void>;
 
 class Lifecycle {
-  _startupFn: StartupFn;
-  _shutdownFn: ShutdownFn;
+  _startupFn: HookFn;
+  _shutdownFn: HookFn;
+  _onShutdownFn: OnShutdown;
+  _onFailureFn: OnFailure;
   _state: number; // current state
   _shutdownRequestSignal: Signal<void>;
   _shutdownSignal: Signal<void>;
   _startupSignal: Signal<void>;
   onShutdown: Promise<void>;
 
-  constructor(startupFn: StartupFn, shutdownFn: ShutdownFn) {
+  constructor(startupFn: HookFn, shutdownFn: HookFn) {
     this._startupFn = startupFn;
     this._shutdownFn = shutdownFn;
+
+    this._onShutdownFn = () => this._onShutdown();
+    this._onFailureFn = (err) => this._onFailure(err);
+
     this._state = INIT;
     this._startupSignal = new Signal();
     this._shutdownSignal = new Signal();
@@ -53,10 +56,11 @@ class Lifecycle {
     try {
       this._state = STARTING_UP;
       const startupFn = this._startupFn;
-      await startupFn(() => this.onComplete(), err => this.onFailure(err));
+      await startupFn(this._onShutdownFn, this._onFailureFn);
       this._state = ACTIVE;
     } catch (e) {
       this._state = SHUTDOWN;
+      // TODO emit shutdown
       throw e;
     }
 
@@ -73,12 +77,18 @@ class Lifecycle {
       return;
     }
 
-    this._state = SHUTTING_DOWN;
-    const shutdownFn = this._shutdownFn;
-    shutdownFn(); // TODO try-catch
+
+    try {
+      this._state = SHUTTING_DOWN;
+      const shutdownFn = this._shutdownFn;
+      shutdownFn(this._onShutdownFn, this._onFailureFn); // TODO handle async errors as well
+    } catch (e) {
+      this._state = SHUTDOWN;
+      // TODO emit shutdown
+    }
   }
 
-  onComplete() {
+  _onShutdown() {
     // TODO throwing may be not the best option
     if (this._state !== ACTIVE && this._state !== SHUTTING_DOWN && this._state !== SHUTDOWN) {
       throw new Error('Can not complete lifecycle this is not started up');
@@ -88,9 +98,7 @@ class Lifecycle {
     this._shutdownSignal.emit();
   }
 
-  // signal that facility is dead and will no longer work,
-  // but it has been cleaned up properly
-  onFailure(err: Error) {
+  _onFailure(err: Error) {
     if (this._state !== ACTIVE) {
       throw new Error('wtf'); // TODO try and handle other cases
     }
