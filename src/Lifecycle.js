@@ -62,7 +62,7 @@ class Lifecycle {
       this._state = ACTIVE;
     } catch (e) {
       this._state = SHUTDOWN;
-      // TODO emit shutdown
+      this._shutdownSignal.fail(e);
       throw e;
     }
 
@@ -73,6 +73,7 @@ class Lifecycle {
   }
 
   shutdown() {
+    // TODO maybe wait for start up signal?
     if (this._state === INIT || this._state === STARTING_UP) {
       throw new Error('Can not shutdown lifecycle that is not started up');
     }
@@ -87,13 +88,15 @@ class Lifecycle {
       shutdownFn(this._onShutdownFn, this._onFailureFn); // TODO handle async errors as well
     } catch (e) {
       this._state = SHUTDOWN;
-      // TODO emit shutdown
+      this._shutdownSignal.fail(e);
     }
   }
 
   _onShutdown() {
     // TODO throwing may be not the best option
-    if (this._state !== ACTIVE && this._state !== SHUTTING_DOWN && this._state !== SHUTDOWN) {
+    const state = this._state;
+
+    if (state !== ACTIVE && state !== SHUTTING_DOWN && state !== SHUTDOWN) {
       throw new Error('Can not complete lifecycle this is not started up');
     }
 
@@ -102,8 +105,10 @@ class Lifecycle {
   }
 
   _onFailure(err: Error) {
-    if (this._state !== ACTIVE) {
-      throw new Error('wtf'); // TODO try and handle other cases
+    const state = this._state;
+
+    if (state !== ACTIVE && state !== SHUTTING_DOWN && state !== SHUTDOWN) {
+      throw new Error('Can not complete lifecycle this is not started up');
     }
 
     this._state = SHUTDOWN;
