@@ -7,6 +7,8 @@ _mocha := tools/node_modules/.bin/_mocha
 babel-external-helpers := tools/node_modules/.bin/babel-external-helpers
 istanbul := tools/node_modules/.bin/istanbul
 
+MOCHA_OPTS := --ui=`pwd`/tools/mocha-interface.js
+
 
 SCRIPT_FILES = $(wildcard scripts/*.js)
 SCRIPTS = $(patsubst scripts/%.js,%,$(SCRIPT_FILES))
@@ -46,14 +48,14 @@ compile-cover:
 cover: compile-cover
 	@rm -rf cover
 	$(babel-external-helpers) > ./babel-helpers.js
-	$(istanbul) cover $(_mocha) -- --require ./babel-helpers.js src-compiled-cover/**/__tests__/**/*.js
+	$(istanbul) cover $(_mocha) -- --require ./babel-helpers.js src-compiled-cover/**/__tests__/**/*.js $(MOCHA_OPTS)
 	@rm babel-helpers.js
 
 check-coverage: cover
 	$(istanbul) check-coverage
 
 test: compile-test
-	$(mocha) src-compiled-test/**/__tests__/**/*.js
+	$(mocha) src-compiled-test/**/__tests__/**/*.js $(MOCHA_OPTS)
 
 clean:
 	@rm -rf src-compiled

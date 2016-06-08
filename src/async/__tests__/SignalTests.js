@@ -1,7 +1,6 @@
 /* @flow */
 
 import assert from 'assert';
-import { convertToMocha } from '../../testing/util.js';
 
 import Signal from '../Signal.js';
 
@@ -19,7 +18,5 @@ class SignalTests {
     assert(err instanceof Error);
   }
 }
-
-convertToMocha(new SignalTests());
 
 export default SignalTests;

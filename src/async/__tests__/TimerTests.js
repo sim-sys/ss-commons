@@ -1,7 +1,6 @@
 /* @flow */
 
 import assert from 'assert';
-import { convertToMocha } from '../../testing/util.js';
 
 import Timer from '../Timer.js';
 
@@ -50,7 +49,5 @@ class TimerTests {
     assert.equal(timer.lifecycle.isActive(), false);
   }
 }
-
-convertToMocha(new TimerTests());
 
 export default TimerTests;

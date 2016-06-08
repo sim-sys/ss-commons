@@ -1,7 +1,6 @@
 /* @flow */
 
 import assert from 'assert';
-import { convertToMocha } from '../../testing/util.js';
 
 import Lifecycle, {
   STARTING_UP,
@@ -61,7 +60,5 @@ class LifecycleTests {
     assert.equal(lifecycle._state, SHUTDOWN);
   }
 }
-
-convertToMocha(new LifecycleTests());
 
 export default LifecycleTests;

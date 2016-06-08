@@ -1,7 +1,6 @@
 /* @flow */
 
 import assert from 'assert';
-import { convertToMocha } from '../../testing/util.js';
 
 import type {
   Success as SuccessT,
@@ -51,7 +50,5 @@ class CoreUtilTests {
     assert.throws(() => unwrapSuccess(result), Error);
   }
 }
-
-convertToMocha(new CoreUtilTests());
 
 export default CoreUtilTests;

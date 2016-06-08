@@ -3,7 +3,6 @@
 import http from 'http';
 
 import assert from 'assert';
-import { convertToMocha } from '../../testing/util.js';
 
 import Signal from '../../async/Signal.js';
 import { bufferReadableStream } from '../util.js';
@@ -77,6 +76,4 @@ class SimpleHttpClientTests {
   }
 }
 
-convertToMocha(new SimpleHttpClientTests());
-
-export default SimpleHttpClient;
+export default SimpleHttpClientTests;

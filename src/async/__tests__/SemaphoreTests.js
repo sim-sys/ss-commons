@@ -5,8 +5,6 @@ import assert from 'assert';
 import Semaphore from '../Semaphore.js';
 import sleep from '../sleep.js';
 
-import { convertToMocha } from '../../testing/util.js';
-
 class SemaphoreTests {
   async testSemaphore() {
     const s = new Semaphore(4);
@@ -45,7 +43,5 @@ class SemaphoreTests {
     assert.equal(max, concurrency);
   }
 }
-
-convertToMocha(new SemaphoreTests());
 
 export default SemaphoreTests;

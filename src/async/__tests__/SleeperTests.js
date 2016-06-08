@@ -1,7 +1,6 @@
 /* @flow */
 
 import assert from 'assert';
-import { convertToMocha } from '../../testing/util.js';
 
 import Sleeper from '../Sleeper.js';
 import sleep from '../sleep.js';
@@ -24,5 +23,4 @@ class SleeperTests {
   }
 }
 
-convertToMocha(new SleeperTests());
 export default SleeperTests;
