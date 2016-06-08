@@ -8,25 +8,43 @@ export const ACTIVE = 2;
 export const SHUTTING_DOWN = 3;
 export const SHUTDOWN = 4;
 
-type StartupFn<Args> = (args: Args, shutdown: Promise<void>) => void | Promise<void>;
+type StartupFn<Args> = (
+  args: Args,
+  onShutdown: () => void,
+  onFailure: (err: Error) => void
+) => void | Promise<void>;
+
+type ShutdownFn = () => void;
 
 class Lifecycle<Args> {
   _startupFn: StartupFn;
+  _shutdownFn: ShutdownFn;
   _state: number; // current state
   _shutdownRequestSignal: Signal<void>;
   _shutdownSignal: Signal<void>;
+  _startupSignal: Signal<void>;
+  onShutdown: Promise<void>;
 
-  constructor(startupFn: StartupFn<Args>) {
+  constructor(startupFn: StartupFn<Args>, shutdownFn: ShutdownFn) {
     this._startupFn = startupFn;
+    this._shutdownFn = shutdownFn;
     this._state = INIT;
+    this._startupSignal = new Signal();
     this._shutdownSignal = new Signal();
     this._shutdownRequestSignal = new Signal();
+    this.onShutdown = this._shutdownSignal.wait();
   }
 
-  // startup the facility
-  async startup(args: Args): Promise<Signal<void>> {
-    if (this._state === STARTING_UP || this._state === ACTIVE) {
-      return this._shutdownSignal;
+  async startup(args: Args): Promise<void> {
+    const state = this._state;
+
+    if (state === ACTIVE) {
+      return;
+    }
+
+    if (state === STARTING_UP) {
+      this._startupSignal.wait();
+      return;
     }
 
     if (this._state !== INIT) {
@@ -36,17 +54,17 @@ class Lifecycle<Args> {
     try {
       this._state = STARTING_UP;
       const startupFn = this._startupFn;
-      await startupFn(args, this._shutdownRequestSignal.wait());
+      await startupFn(args, () => this.onComplete(), err => this.onFailure(err));
       this._state = ACTIVE;
     } catch (e) {
       this._state = SHUTDOWN;
       throw e;
     }
 
-    return this._shutdownSignal;
+    this._startupSignal.emit();
+    return;
   }
 
-  // request shutdown
   shutdown() {
     if (this._state === INIT || this._state === STARTING_UP) {
       throw new Error('Can not shutdown lifecycle that is not started up');
@@ -57,10 +75,10 @@ class Lifecycle<Args> {
     }
 
     this._state = SHUTTING_DOWN;
-    this._shutdownRequestSignal.emit();
+    const shutdownFn = this._shutdownFn;
+    shutdownFn(); // TODO try-catch
   }
 
-  // signal that facility is done doing things successfully
   onComplete() {
     // TODO throwing may be not the best option
     if (this._state !== ACTIVE && this._state !== SHUTTING_DOWN && this._state !== SHUTDOWN) {

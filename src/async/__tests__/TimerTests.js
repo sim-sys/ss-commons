@@ -23,9 +23,8 @@ class TimerTests {
       }
     };
 
-    const s = await timer.lifecycle.startup(args);
-
-    await s.wait();
+    await timer.lifecycle.startup(args);
+    await timer.lifecycle.onShutdown;
 
     assert.equal(i, 3);
   }
@@ -43,8 +42,8 @@ class TimerTests {
       }
     };
 
-    const s = await timer.lifecycle.startup(args);
-    const e = await s.wait().catch(e => e);
+    await timer.lifecycle.startup(args);
+    const e = await timer.lifecycle.onShutdown.catch(e => e);
     assert(e instanceof Error);
     assert.equal(timer.lifecycle.isActive(), false);
   }

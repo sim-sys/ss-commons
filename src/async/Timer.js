@@ -2,6 +2,7 @@
 
 import Lifecycle from '../Lifecycle.js';
 import Sleeper from './Sleeper.js';
+import Signal from './Signal.js';
 
 type Args = {
   interval: number,
@@ -11,8 +12,11 @@ type Args = {
 class Timer {
   lifecycle: Lifecycle<Args>;
   constructor() {
-    this.lifecycle = new Lifecycle((args, onShutdown) => {
-      this._run(args, onShutdown);
+    const shutdownSignal = new Signal();
+    this.lifecycle = new Lifecycle((args) => {
+      this._run(args, shutdownSignal.wait());
+    }, () => {
+      shutdownSignal.emit();
     });
   }
 

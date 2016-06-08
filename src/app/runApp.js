@@ -24,10 +24,10 @@ async function actuallyRunApp(app: Facility<void>, process: Process) {
   process.once('uncaughtException', shutdownApp);
   process.once('unhandledRejection', shutdownApp);
 
-  const s = await app.lifecycle.startup(); // TODO cli args?
+  await app.lifecycle.startup(); // TODO cli args?
 
   try {
-    await s.wait();
+    await app.lifecycle.onShutdown;
   } catch (e) {
     // TODO log
     process.exit(-1);

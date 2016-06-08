@@ -9,11 +9,9 @@ import Lifecycle, {
   SHUTDOWN
 } from '../Lifecycle.js';
 
-import Signal from '../async/Signal.js';
-
 class LifecycleTests {
   testLifecycle() {
-    const lifecycle = new Lifecycle(() => {});
+    const lifecycle = new Lifecycle(() => {}, () => {});
     assert(lifecycle instanceof Lifecycle);
   }
 
@@ -23,18 +21,17 @@ class LifecycleTests {
     const lifecycle = new Lifecycle(async () => {
       state = lifecycle._state;
       done = true;
-    });
-    const signal = await lifecycle.startup();
+    }, () => {});
+    await lifecycle.startup();
     assert(done);
     assert.equal(state, STARTING_UP);
     assert.equal(lifecycle._state, ACTIVE);
-    assert(signal instanceof Signal);
   }
 
   async testStartupFailure() {
     const lifecycle = new Lifecycle(async () => {
       throw new Error();
-    });
+    }, () => {});
     const err = await lifecycle.startup().catch(e => e);
     assert(err instanceof Error);
     assert.equal(lifecycle._state, SHUTDOWN);
@@ -43,17 +40,16 @@ class LifecycleTests {
   async testShutdown() {
     let done = false;
     let state = null;
-    const lifecycle = new Lifecycle((arg, onShutdown) => {
-      onShutdown.then(() => {
-        state = lifecycle._state;
-        done = true;
-        lifecycle.onComplete();
-      });
+    const lifecycle = new Lifecycle(() => {}, () => {
+      state = lifecycle._state;
+      done = true;
+      lifecycle.onComplete();
     });
-    const signal = await lifecycle.startup();
+
+    await lifecycle.startup();
     lifecycle.shutdown();
 
-    await signal.wait();
+    await lifecycle.onShutdown;
 
     assert(done);
     assert.equal(state, SHUTTING_DOWN);

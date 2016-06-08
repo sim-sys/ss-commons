@@ -18,7 +18,7 @@ describe('app', () => {
   describe('almostRunApp', () => {
     const process = new MockProcess();
     const app = {
-      lifecycle: new Lifecycle(() => {})
+      lifecycle: new Lifecycle(() => {}, () => {})
     };
     almostRunApp(app, process);
   });
