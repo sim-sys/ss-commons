@@ -1,12 +1,16 @@
 /* @flow */
 
 import type {
-  HttpHeaders
+  HttpHeaders,
+  HttpRequest,
+  HttpMethod
 } from './types.js';
 
 import type {
   Readable
 } from 'stream';
+
+import type http from 'http';
 
 import Signal from '../async/Signal.js';
 
@@ -24,6 +28,7 @@ export function normalizeHeaders(headers: HttpHeaders): HttpHeaders {
 }
 
 
+// TODO max length
 export async function bufferReadableStream(stream: Readable): Promise<Buffer> {
   const r = new Signal();
 
@@ -42,4 +47,38 @@ export async function bufferReadableStream(stream: Readable): Promise<Buffer> {
   await r.wait();
 
   return Buffer.concat(buffers);
+}
+
+const methodMap: { [key: string]: ?HttpMethod } = {
+  GET: 'GET',
+  POST: 'POST',
+  PUT: 'PUT',
+  DELETE: 'DELETE',
+};
+
+export function parseMethod(str: string): ?HttpMethod {
+  return methodMap[str.toUpperCase()];
+}
+
+// TODO max length
+export async function makeBufferedRequest(
+  request: http.IncomingMessage
+): Promise<?HttpRequest<Buffer>> {
+  const method = parseMethod(request.method);
+
+  if (!method) {
+    return null;
+  }
+
+  const headers = request.headers;
+  const url = request.url;
+
+  const body = await bufferReadableStream(request);
+
+  return {
+    method,
+    headers,
+    url,
+    body
+  };
 }

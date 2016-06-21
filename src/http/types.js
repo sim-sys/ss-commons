@@ -1,5 +1,9 @@
 /* @flow */
 
+import type {
+  Service
+} from '../service/types.js';
+
 export type HttpMethod =
   | 'GET'
   | 'POST'
@@ -27,6 +31,15 @@ export type HttpResponse<Body> = {
   body: Body
 };
 
-export type HttpClient<ReqBody, RepBody> = {
-  call(req: HttpRequest<ReqBody>): Promise<HttpResponse<RepBody>>;
+export type HttpService<ReqBody, RepBody> = Service<HttpRequest<ReqBody>, HttpResponse<RepBody>>;
+
+export type HttpClient<ReqBody, RepBody> = HttpService<ReqBody, RepBody>;
+
+export type Addr = {
+  port: number,
+  host: string
+};
+
+export type HttpServer<ReqBody, RepBody> = {
+  listen(addr: Addr, service: HttpService<ReqBody, RepBody>): Promise<void>
 };

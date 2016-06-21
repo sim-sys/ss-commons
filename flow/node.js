@@ -661,7 +661,7 @@ declare class http$IncomingMessage extends stream$Readable {
   setTimeout(msecs: number, callback: Function): void;
   socket: net$Socket;
   statusCode: number;
-  url: String;
+  url: string;
 }
 
 declare class http$ClientRequest extends stream$Writable {
@@ -686,6 +686,8 @@ declare module "http" {
 
   declare class ClientRequest extends http$ClientRequest {}
   declare class IncomingMessage extends http$IncomingMessage {}
+  declare class ServerResponse extends stream$Writable {
+  }
 
   declare function createServer(listener?: Function): Server;
   declare function request(

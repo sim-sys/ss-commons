@@ -23,7 +23,7 @@ function andResult(...results: Array<AnyResult>): AnyArrayResult {
   return {
     success: true,
     val: vals
-  }
+  };
 }
 
 function andResultFn(...resultFns: Array<AnyResultFn>): AnyResult {
@@ -41,7 +41,7 @@ function andResultFn(...resultFns: Array<AnyResultFn>): AnyResult {
   return {
     success: true,
     val: vals
-  }
+  };
 }
 
 function orResult(...results: Array<AnyResult>): AnyResult {

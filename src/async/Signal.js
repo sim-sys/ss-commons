@@ -31,6 +31,17 @@ class Signal<T> {
   fail(err: Error) {
     this._reject(err);
   }
+
+  // TODO this doesn't really work with T other than void
+  toCallback(d: T): (err: ?Error, r: ?T) => void {
+    return (err: ?Error, r: ?T) => {
+      if (err) {
+        this.fail(err);
+      } else {
+        this.emit(r || d);
+      }
+    };
+  }
 }
 
 export default Signal;
