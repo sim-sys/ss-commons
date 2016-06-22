@@ -82,3 +82,22 @@ export async function makeBufferedRequest(
     body
   };
 }
+
+
+export function cloneReqWithBody<A, B>(
+  req: HttpRequest<A>,
+  body: B
+): HttpRequest<B> {
+  const {
+    method,
+    headers,
+    url
+  } = req;
+
+  return {
+    method,
+    headers,
+    url,
+    body
+  };
+}

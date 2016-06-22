@@ -4,7 +4,7 @@ import Signal from './Signal.js';
 
 class WaitGroup {
   _n: number;
-  _signal: Signal;
+  _signal: Signal<void>;
 
   constructor(n: number) {
     this._n = n >>> 0;
