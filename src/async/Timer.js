@@ -4,7 +4,7 @@ import Lifecycle from '../Lifecycle.js';
 import Sleeper from './Sleeper.js';
 import Signal from './Signal.js';
 
-import { unwrap } from '../core/util.js';
+import { unwrap } from '../index.js';
 
 type Args = {
   interval: number,

@@ -9,7 +9,7 @@ import type net from 'net';
 
 import Signal from '../async/Signal.js';
 import http from 'http';
-import { unwrap } from '../core/util.js';
+import { unwrap } from '../index.js';
 import {
   makeBufferedRequest
 } from './util.js';

@@ -25,10 +25,7 @@
     "no-loop-func": 0,
     "no-underscore-dangle": 0,
     "flow-vars/define-flow-type": 1,
-    "no-duplicate-imports": 0
-  },
-  "globals": {
-    "describe": true,
-    "it": true
+    "no-duplicate-imports": 0,
+    "spaced-comment": ["error", "always", { "markers": ["/"] }]
   }
 }
