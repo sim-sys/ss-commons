@@ -70,9 +70,10 @@ install:
 dist: compile
 	@rm -rf dist
 	@mkdir -p dist
-	@cp -r src-compiled dist/src-compiled
-	@cp -r src dist/src
-	@find dist/src -name '__tests__' | xargs rm -r
-	@cp index.js index.js.flow package.json dist
+	@cp -r src/ dist
+	@find dist/ -name '__tests__' | xargs rm -r
+	@find dist/ -name '*.js' | xargs -I {} mv {} {}.flow
+	@cp -r src-compiled/ dist
+	@cp package.json dist/package.json
 
 .PHONY: clean test lint flow compile compile-test compile-cover all cover run.% install dist

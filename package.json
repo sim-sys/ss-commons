@@ -4,6 +4,7 @@
   "description": "Simple Systems Commons",
   "main": "index.js",
   "author": "Vladimir Kurchatkin <vladimir.kurchatkin@gmail.com>",
+  "private": true,
   "license": "MIT",
   "scripts": {
     "test": "make test"
