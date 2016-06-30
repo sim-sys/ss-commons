@@ -17,5 +17,9 @@
     "flow-bin": "0.27.0",
     "istanbul": "0.4.4",
     "mocha": "2.5.3"
+  },
+  "devDependencies": {
+    "eslint-plugin-import": "1.10.0",
+    "eslint-plugin-jsx-a11y": "1.5.3"
   }
 }
