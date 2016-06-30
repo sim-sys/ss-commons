@@ -1,6 +1,5 @@
 /* @flow */
 
-import assert from 'assert';
 import WaitGroup from '../WaitGroup.js';
 
 class WaitGroupTests {
