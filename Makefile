@@ -63,7 +63,7 @@ clean:
 	@rm -rf src-compiled-cover
 	@rm -rf cover
 
-install:
+deps:
 	npm install
 	cd tools && npm install
 
@@ -76,4 +76,4 @@ dist: compile
 	@cp -r src-compiled/ dist
 	@cp package.json dist/package.json
 
-.PHONY: clean test lint flow compile compile-test compile-cover all cover run.% install dist
+.PHONY: clean test lint flow compile compile-test compile-cover all cover run.% deps dist

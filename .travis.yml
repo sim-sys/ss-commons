@@ -4,9 +4,6 @@ node_js:
   - '5'
   - '4'
 install:
-  - npm install
-  - cd tools
-  - npm install
-  - cd ..
+  - make deps
 script:
   - make all
