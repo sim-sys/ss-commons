@@ -31,7 +31,7 @@ lint:
 	$(eslint) src
 
 flow:
-	$(flow) check --no-flowlib
+	$(flow) check --no-flowlib --sharedmemory-minimum-available=53687091200
 
 compile:
 	@rm -rf src-compiled
