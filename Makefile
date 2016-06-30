@@ -65,7 +65,7 @@ clean:
 
 install:
 	npm install
-	cd tool && npm install
+	cd tools && npm install
 
 dist: compile
 	@rm -rf dist
