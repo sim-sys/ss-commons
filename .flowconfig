@@ -12,3 +12,4 @@
 flow
 
 [options]
+suppress_comment=\\(.\\|\n\\)*\\$ExpectError

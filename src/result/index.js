@@ -1,6 +1,5 @@
 /* @flow */
 
-
 /// Success represents a value of typed V, produced
 /// by some failure-prone operation
 type SuccessT<V> = { ok: true, v: V };
