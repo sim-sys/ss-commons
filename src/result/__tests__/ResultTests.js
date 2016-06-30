@@ -11,8 +11,7 @@ class ResultTests {
     const foo: Result<string, string> = Success('bar');
 
     if (foo.ok) {
-      if (foo.ok)
-        assert.equal(foo.v, 'bar');
+      assert.equal(foo.v, 'bar');
     }
   }
 

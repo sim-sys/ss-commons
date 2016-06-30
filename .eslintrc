@@ -26,6 +26,7 @@
     "no-underscore-dangle": 0,
     "flow-vars/define-flow-type": 1,
     "no-duplicate-imports": 0,
-    "spaced-comment": ["error", "always", { "markers": ["/"] }]
+    "spaced-comment": ["error", "always", { "markers": ["/"] }],
+    "no-unused-expressions": 0
   }
 }
