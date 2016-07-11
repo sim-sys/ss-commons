@@ -5,7 +5,7 @@ import Signal from './Signal.js';
 // the same as sleep, but could be interrupted only once
 class Sleeper {
   _timer: any;
-  _signal: ?Signal;
+  _signal: ?Signal<void>;
 
   constructor(interrupt: Promise<void>) {
     this._timer = null;

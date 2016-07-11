@@ -14,3 +14,8 @@ export type {
   HttpRequest,
   HttpResponse
 };
+
+export {
+  SimpleHttpClient,
+  SimpleHttpServer
+};
