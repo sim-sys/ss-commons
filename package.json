@@ -1,6 +1,6 @@
 {
   "name": "ss-commons",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Simple Systems Commons",
   "main": "index.js",
   "author": "Vladimir Kurchatkin <vladimir.kurchatkin@gmail.com>",
