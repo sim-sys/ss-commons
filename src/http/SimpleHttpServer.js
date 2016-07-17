@@ -23,6 +23,7 @@ class SimpleHttpServer {
   _connections: Array<net.Socket>;
   constructor() {
     this._nodeServer = http.createServer((req, res) => this._onRequest(req, res));
+    this._connections = [];
     this._listening = false;
     this._service = null;
   }
