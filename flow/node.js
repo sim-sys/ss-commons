@@ -687,6 +687,7 @@ declare module "http" {
   declare class ClientRequest extends http$ClientRequest {}
   declare class IncomingMessage extends http$IncomingMessage {}
   declare class ServerResponse extends stream$Writable {
+    writeHead(statusCode: number, headers: { [k: string]: any }): void;
   }
 
   declare function createServer(listener?: Function): Server;

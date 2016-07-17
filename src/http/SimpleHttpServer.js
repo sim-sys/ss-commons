@@ -49,7 +49,7 @@ class SimpleHttpServer {
   }
 
   _onDisconnection(socket: net.Socket) {
-    const i = this._connections.indexOf(socket);
+    const i = this._connections.indexOf(socket); // TODO this is very inefficient
 
     if (i > -1) {
       this._connections.splice(i, 1);
@@ -68,10 +68,20 @@ class SimpleHttpServer {
     const ctx = new Context();
     const response = await service.call(request, ctx);
     // TODO try and 500
+    // TODO track client state
 
-    // TODO respond
-    console.log(res);
-    console.log(response);
+    const {
+      body,
+      headers,
+      statusCode
+    } = response;
+
+    console.log(response)
+
+    headers['content-length'] = '' + body.length;
+
+    res.writeHead(statusCode, headers);
+    res.end(body);
   }
 }
 
