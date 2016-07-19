@@ -11,3 +11,5 @@ function unwrap<T>(val: ?T): T {
 export {
   unwrap
 };
+
+export type UnknownObject = { [key: string]: mixed };
