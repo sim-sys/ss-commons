@@ -54,6 +54,8 @@ class SimpleHttpClientTests {
 
     await received.wait();
 
+    const socket = serverRes.socket;
+
     const serverBody = await bufferReadableStream(serverReq);
 
     serverRes.writeHead(401, { 'Content-Type': 'text/plain' });
@@ -73,6 +75,26 @@ class SimpleHttpClientTests {
 
     assert.equal(serverReq.headers['connection'], 'keep-alive');
     assert.equal(socketClosed, false);
+
+    socket.destroy();
+    const closeS = new Signal();
+    server.close(closeS.toCallback());
+    await closeS.wait();
+  }
+
+  async testConnectionError() {
+    const hostname = '127.0.0.1';
+    const port = PORT;
+
+    const client = new SimpleHttpClient({ port, hostname });
+    const err = await client.call({
+      method: 'POST',
+      headers: { foo: 'bar' },
+      body: new Buffer('foo'),
+      url: '/foobar'
+    }).catch(e => e);
+
+    assert.equal(err.code, 'ECONNREFUSED');
   }
 }
 

@@ -92,15 +92,33 @@ class SimpleHttpClient {
 
     const nodeReq = http.request(opts, res => s.emit(res));
 
+    const errS: Signal<void> = new Signal();
+    let error = null;
+
+    nodeReq.once('error', (err: Error) => {
+      errS.emit();
+      error = err;
+    });
+
+
     if (req.body && req.body.length > 0) {
       nodeReq.write(req.body);
     }
 
     nodeReq.end();
 
-    // TODO handle errors
+    const nodeRes = await Promise.race([
+      s.wait(),
+      errS.wait()
+    ]);
 
-    const nodeRes = await s.wait();
+    if (!nodeRes) {
+      if (error) {
+        throw error;
+      } else {
+        throw new Error('unknown error');
+      }
+    }
 
     // TODO limit max body size
     const body = await bufferReadableStream(nodeRes);

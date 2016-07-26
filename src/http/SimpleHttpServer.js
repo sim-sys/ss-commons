@@ -76,8 +76,6 @@ class SimpleHttpServer {
       statusCode
     } = response;
 
-    console.log(response)
-
     headers['content-length'] = '' + body.length;
 
     res.writeHead(statusCode, headers);
