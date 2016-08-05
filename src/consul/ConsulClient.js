@@ -24,7 +24,7 @@ class ConsulClient {
   async getKV(path: string): Promise<?string> {
     const url = `/v1/kv/${path}`; // TODO encode url?
     const req = { headers: {}, method: 'GET', url, body: null };
-    const rep = await this.httpClient.call(req);
+    const rep = await this.httpClient.call(req, (null: any)); // TODO fixme
 
     if (rep.statusCode === 404) {
       return null;
