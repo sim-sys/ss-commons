@@ -1,8 +1,27 @@
+'use strict';
 
-const lifecycle = new Lifecycle(startup, shutdown);
+const yaml = require('js-yaml');
 
-function onStartup(args, onShutdown, onFailure) {
+const text = `
+name: com.example.service
+desc: |
+  Bla bla
+  bla bla bla
+types:
+  Foobar:
+    id: String
+    name: String
+methods:
+  fetchFoobar:
+    type: fetch
+    res:
+      type: Object
 
-}
+      foo: string
+      bar:
+        baz: ?string
+      bar: List<number
+`;
 
-function shutdown
+const doc = yaml.safeLoad(text);
+console.log(JSON.stringify(doc, null, '  '));
