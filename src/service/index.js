@@ -1,14 +1,19 @@
 /* @flow */
 
 import Context from './Context.js';
-import type {
-  Service
-} from './types.js';
 
 export {
   Context
 };
 
-export type {
-  Service
-};
+export interface Service<Req, Res> {
+  call(req: Req, ctx: Context): Promise<Res>
+}
+
+export interface Filter<ReqIn, ResOut, ReqOut, ResIn> {
+  apply(req: ReqIn, context: Context, service: Service<ReqOut, ResIn>): Promise<ResOut>
+}
+
+export type SimpleFilter<Req, Res> = Filter<Req, Res, Req, Res>;
+
+export function createEmptyContext() {}

@@ -2,7 +2,7 @@
 
 import type {
   Service
-} from '../service/types.js';
+} from '../service/index.js';
 
 export type HttpMethod =
   | 'GET'
