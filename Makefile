@@ -26,7 +26,7 @@ endef
 
 all: clean flow lint test check-coverage compile
 
-ci: flow lint test check-coverage compile
+ci: lint test check-coverage compile
 
 $(foreach i,$(SCRIPTS), $(eval $(call SCRIPT,$(i))))
 

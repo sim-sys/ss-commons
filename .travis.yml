@@ -5,4 +5,5 @@ node_js:
 install:
   - make deps
 script:
+  - ./tools/node_modules/.bin/flow check --no-flowlib
   - make ci
