@@ -13,6 +13,7 @@
 
 declare var NaN: number;
 declare var Infinity: number;
+declare var undefined: void;
 
 declare function parseInt(string: string, radix?: number): number;
 declare function parseFloat(string: string): number;
