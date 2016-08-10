@@ -77,12 +77,18 @@ export type Method = {
   desc: string,
   type: MethodType,
   req: Type,
-  rep: Type
+  res: Type
 };
 
-export type Schema = {
+export type CustomTypeDefinition = {
+  name: string,
+  type: Type
+};
+
+export type ServiceDefinition = {
   id: string,
   name: string,
   desc: string,
+  types: Array<CustomTypeDefinition>,
   methods: Array<Method>
 };

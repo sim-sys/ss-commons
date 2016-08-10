@@ -12,12 +12,16 @@ import {
 } from '../result/index.js';
 
 import type {
-  Schema,
+  ServiceDefinition,
   Method,
   MethodType,
   Type,
   Prop,
-  EnumOption
+  EnumOption,
+  CustomTypeDefinition,
+  CustomType,
+  UnionType,
+  UnionOption
 } from './types.js';
 
 export type ParseFailure = {
@@ -41,7 +45,9 @@ function validateUnknownFields(obj: UnknownObject, knownFields: Array<string>): 
   return result;
 }
 
-export function parseServiceDefinition(str: string, filename: string): Result<Schema, ParseFailure> {
+export function parseServiceDefinition(
+  str: string
+): Result<ServiceDefinition, ParseFailure> {
   let raw;
 
   try {
@@ -98,38 +104,115 @@ export function parseServiceDefinition(str: string, filename: string): Result<Sc
 
   const methods = methodsR.v;
 
+  const typesR = parseCustomTypes(obj.types);
+
+  if (!typesR.ok) {
+    return typesR;
+  }
+
+  const types = typesR.v;
+
   const unknownFields = validateUnknownFields(obj, [
     'id',
     'name',
     'desc',
-    'methods'
+    'methods',
+    'types'
   ]);
 
   if (unknownFields.length > 0) {
     return fail(`service definition contains unknown fields: ${unknownFields.join(', ')}`);
   }
 
-  const schema: Schema = {
+  const definition: ServiceDefinition = {
     id,
     name,
     desc,
+    types,
     methods
   };
 
-  return Success(schema);
+  return Success(definition);
+}
+
+function setUnion<T>(sets: Array<Set<T>>): Set<T> {
+  const r = new Set();
+  sets.forEach(s => {
+    s.forEach(v => { r.add(v); });
+  });
+  return r;
+}
+
+export function getCustomTypeDeps(type: Type): Set<CustomType> {
+  switch (type.type) {
+    case 'String': return new Set([]);
+    case 'Number': return new Set([]);
+    case 'Boolean': return new Set([]);
+    case 'Enum': return new Set([]);
+    case 'Custom': return new Set([type]);
+    case 'Object': return setUnion(type.props.map(p => getCustomTypeDeps(p.type)));
+    case 'Union':
+      return setUnion(type.options.map(o => setUnion(o.props.map(p => getCustomTypeDeps(p.type)))));
+    default: throw new Error('TODO');
+  }
+}
+
+function parseCustomTypes(raw: mixed): Result<Array<CustomTypeDefinition>, ParseFailure> {
+  if (typeof raw === 'undefined') {
+    return Success([]);
+  }
+
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return fail('types should be an object');
+  }
+
+  const parsedTypes = [];
+
+  const names = Object.keys(raw);
+
+  for (const name of names) {
+    const rawType = raw[name];
+    const r = parseCustomType(rawType, name);
+
+    if (!r.ok) {
+      return r;
+    }
+
+    parsedTypes.push(r.v);
+  }
+
+  return Success(parsedTypes);
+}
+
+function parseCustomType(raw: mixed, name: string): Result<CustomTypeDefinition, ParseFailure> {
+  const typeR = parseType(raw);
+
+  if (!typeR.ok) {
+    return typeR;
+  }
+
+  const type: CustomTypeDefinition = {
+    name,
+    type: typeR.v
+  };
+
+  return Success(type);
 }
 
 function parseMethods(raw: mixed): Result<Array<Method>, ParseFailure> {
   if (typeof raw === 'undefined') {
-    return fail('service should define methods')
+    return fail('service should define methods');
   }
 
   if (Array.isArray(raw)) {
     return parseMethodsFromArray(raw);
   }
 
+  if (!raw || typeof raw !== 'object') {
+    return fail('methods should be array or object');
+  }
 
-  return fail('TODO');
+  return parseMethodsFromObject(raw);
 }
 
 function parseMethodsFromArray(raw: Array<mixed>): Result<Array<Method>, ParseFailure> {
@@ -148,12 +231,32 @@ function parseMethodsFromArray(raw: Array<mixed>): Result<Array<Method>, ParseFa
   return Success(result);
 }
 
-function parseMethod(raw: mixed, name: ?string): Result<Method, ParseFailure> {
+function parseMethodsFromObject(raw: UnknownObject): Result<Array<Method>, ParseFailure> {
+  const result: Array<Method> = [];
+
+  const names = Object.keys(raw);
+  for (const name of names) {
+    const val = raw[name];
+    const methodR = parseMethod(val, name);
+
+    if (!methodR.ok) {
+      return methodR;
+    }
+
+    result.push(methodR.v);
+  }
+
+  return Success(result);
+}
+
+function parseMethod(raw: mixed, defaultName: ?string): Result<Method, ParseFailure> {
   const obj = raw;
 
   if (!obj || typeof obj !== 'object') {
     return fail('invalid method definition');
   }
+
+  let name = defaultName;
 
   if (!name) {
     const tempName = obj.name;
@@ -197,31 +300,43 @@ function parseMethod(raw: mixed, name: ?string): Result<Method, ParseFailure> {
 
   const type = typeR.v;
 
-  const reqR = parseType(obj.req);
+  let req;
 
-  if (!reqR.ok) {
-    return reqR;
+  if (typeof obj.req === 'undefined') {
+    req = { type: 'Object', props: [] };
+  } else {
+    const reqR = parseType(obj.req);
+
+    if (!reqR.ok) {
+      return reqR;
+    }
+
+    req = reqR.v;
   }
 
-  const req = reqR.v;
+  let res;
 
-  const repR = parseType(obj.rep);
+  if (typeof obj.res === 'undefined') {
+    res = { type: 'Object', props: [] };
+  } else {
+    const resR = parseType(obj.res);
 
-  if (!repR.ok) {
-    return repR;
+    if (!resR.ok) {
+      return resR;
+    }
+
+    res = resR.v;
   }
-
-  const rep = repR.v;
 
   const method: Method = {
     name,
     desc,
     type,
     req,
-    rep
+    res
   };
 
-  return fail('');
+  return Success(method);
 }
 
 function parseMethodType(raw: mixed): Result<MethodType, ParseFailure> {
@@ -235,9 +350,8 @@ function parseMethodType(raw: mixed): Result<MethodType, ParseFailure> {
     case 'fetch': return Success('Fetch');
     case 'idempotent': return Success('Idempotent');
     case 'unsafe': return Success('Unsafe');
+    default: return fail(message);
   }
-
-  return fail(message);
 }
 
 export function parseType(raw: mixed): Result<Type, ParseFailure> {
@@ -257,7 +371,7 @@ export function parseType(raw: mixed): Result<Type, ParseFailure> {
   let type = raw.type;
 
   if (typeof type === 'undefined') {
-    type === 'Object';
+    type = 'Object';
   }
 
   if (typeof type !== 'string') {
@@ -269,14 +383,13 @@ export function parseType(raw: mixed): Result<Type, ParseFailure> {
     case 'Number': return Success({ type: 'Number' });
     case 'Boolean': return Success({ type: 'Boolean' });
     case 'Enum': return parseEnumType(raw);
-    // TODO union
+    case 'Union': return parseUnionType(raw);
     case 'Object': return parseObjectType(raw);
+    default: return Success({ type: 'Custom', ref: type });
   }
-
-  return Success({ type: 'Custom', ref: type })
 }
 
-export function parseObjectType(type: { [key: string]: mixed }):  Result<Type, ParseFailure> {
+export function parseObjectType(type: { [key: string]: mixed }): Result<Type, ParseFailure> {
   let props = type.props;
 
   if (typeof props === 'undefined') {
@@ -290,29 +403,15 @@ export function parseObjectType(type: { [key: string]: mixed }):  Result<Type, P
     }
   }
 
-  if (!props || typeof props !== 'object' || Array.isArray(props)) {
-    return fail('props should be an object'); // TODO array mode
+  const propsR = parseProps(props);
+
+  if (!propsR.ok) {
+    return propsR;
   }
-
-  const keys = Object.keys(props);
-
-  const parsedProps = [];
-
-  for (const key of keys) {
-    const propDesc = props[key];
-    const propR = parseProp(propDesc, key);
-
-    if (!propR.ok) {
-      return propR;
-    }
-
-    parsedProps.push(propR.v);
-  }
-
 
   return Success({
     type: 'Object',
-    props: parsedProps
+    props: propsR.v
   });
 }
 
@@ -370,6 +469,63 @@ export function parseEnumOption(raw: mixed): Result<EnumOption, ParseFailure> {
   });
 }
 
+export function parseUnionOption(raw: mixed): Result<UnionOption, ParseFailure> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return fail('union options should be an object');
+  }
+
+  const key = raw.key;
+
+  if (typeof key === 'undefined') {
+    return fail('union option should have a key');
+  }
+
+  if (typeof key !== 'string') {
+    return fail('union option key should be a string');
+  }
+
+  if (key.length === 0) {
+    return fail('union option key should be non-empty');
+  }
+
+  let name = raw.name;
+
+  if (typeof name === 'undefined') {
+    name = key;
+  }
+
+  if (typeof name !== 'string') {
+    return fail('union option name should be a string');
+  }
+
+  let desc = raw.desc;
+
+  if (typeof desc === 'undefined') {
+    desc = '';
+  }
+
+  if (typeof desc !== 'string') {
+    return fail('union option desc should be a string');
+  }
+
+  const propsR = parseProps(raw.props);
+
+  if (!propsR.ok) {
+    return propsR;
+  }
+
+  const props = propsR.v;
+
+  const result: UnionOption = {
+    key,
+    name,
+    desc,
+    props
+  };
+
+  return Success(result);
+}
+
 export function parseEnumType(type: { [key: string]: mixed }): Result<Type, ParseFailure> {
   const options = type.options;
 
@@ -399,6 +555,50 @@ export function parseEnumType(type: { [key: string]: mixed }): Result<Type, Pars
   });
 }
 
+export function parseUnionType(type: { [key: string]: mixed }): Result<Type, ParseFailure> {
+  const key = type.key;
+
+  if (typeof key !== 'string') {
+    return fail('union type should define a key');
+  }
+
+  if (key.length === 0) {
+    return fail('key should not be empty');
+  }
+
+
+  const options = type.options;
+
+  if (typeof options === 'undefined') {
+    return fail('enum should define options');
+  }
+
+  if (!Array.isArray(options)) {
+    return fail('options should be an array');
+  }
+
+  // TODO check that key is not used as prop
+
+  const parsedOptions = [];
+
+  for (const option of (options: Array<mixed>)) {
+    const optionR = parseUnionOption(option);
+
+    if (!optionR.ok) {
+      return optionR;
+    }
+
+    parsedOptions.push(optionR.v);
+  }
+
+  const result: UnionType = {
+    type: 'Union',
+    key,
+    options: parsedOptions
+  };
+
+  return Success(result);
+}
 
 function createDefaultProp(key: string, type: Type): Prop {
   return {
@@ -420,7 +620,7 @@ export function parseProp(raw: mixed, key: string): Result<Prop, ParseFailure> {
   const type = typeR.v;
 
   if (typeof raw === 'string') {
-    return Success(createDefaultProp(key, typeR.v))
+    return Success(createDefaultProp(key, typeR.v));
   }
 
   if (!raw || typeof raw !== 'object') {
@@ -446,7 +646,7 @@ export function parseProp(raw: mixed, key: string): Result<Prop, ParseFailure> {
 
   let optional = raw.optional;
 
-  if (typeof  optional === 'undefined') {
+  if (typeof optional === 'undefined') {
     optional = false;
   } else if (typeof optional !== 'boolean') {
     return fail('optional should be a boolean');
@@ -459,4 +659,27 @@ export function parseProp(raw: mixed, key: string): Result<Prop, ParseFailure> {
     optional,
     type
   });
+}
+
+export function parseProps(raw: mixed): Result<Array<Prop>, ParseFailure> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return fail('props should be an object'); // TODO array mode
+  }
+
+  const keys = Object.keys(raw);
+
+  const parsedProps = [];
+
+  for (const key of keys) {
+    const propDesc = raw[key];
+    const propR = parseProp(propDesc, key);
+
+    if (!propR.ok) {
+      return propR;
+    }
+
+    parsedProps.push(propR.v);
+  }
+
+  return Success(parsedProps);
 }

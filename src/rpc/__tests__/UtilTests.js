@@ -87,10 +87,10 @@ class UtilTests {
   }
 
   testIndentAllButFirstLineSingleLine() {
-    const str = `foo`;
+    const str = 'foo';
     const result = indentAllButFirstLine(str, 2);
 
-    assert.equal(result, `foo`);
+    assert.equal(result, 'foo');
   }
 }
 

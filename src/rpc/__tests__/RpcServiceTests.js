@@ -1,11 +1,11 @@
 /* @flow */
 
-import RpcService from '../RpcService.js';
+// import RpcService from '../RpcService.js';
 
 class RpcServiceTests {
 
   testRpcService() {
-    const s = new RpcService();
+    // const s = new RpcService();
   }
 
 }

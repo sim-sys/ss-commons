@@ -9,17 +9,17 @@ import {
   unwrapFailure
 } from '../../result/index.js';
 
-import type {
-  Type,
-  Prop
-} from '../types.js';
-
 import {
   parseType,
   parseProp,
   parseObjectType,
-  parseEnumType
+  parseEnumType,
+  parseServiceDefinition
 } from '../dsl.js';
+
+import {
+  unindent
+} from '../util.js';
 
 import type {
   ParseFailure
@@ -64,6 +64,11 @@ class DslTests {
     assertParseSuccess(
       parseType('Foobar'),
       { type: 'Custom', ref: 'Foobar' }
+    );
+
+    assertParseSuccess(
+      parseType({}),
+      { type: 'Object', props: [] }
     );
 
     assertParseFailure(parseType(1), 'invalid type');
@@ -195,14 +200,14 @@ class DslTests {
             name: 'foo',
             optional: false,
             desc: '',
-            type: { type: 'String'}
+            type: { type: 'String' }
           },
           {
             key: 'bar',
             name: 'bar',
             optional: false,
             desc: '',
-            type: { type: 'Number'}
+            type: { type: 'Number' }
           },
         ]
       }
@@ -238,16 +243,24 @@ class DslTests {
             name: 'foo',
             optional: false,
             desc: '',
-            type: { type: 'String'}
+            type: { type: 'String' }
           },
           {
             key: 'bar',
             name: 'bar',
             optional: false,
             desc: '',
-            type: { type: 'Number'}
+            type: { type: 'Number' }
           },
         ]
+      }
+    );
+
+    assertParseSuccess(
+      parseObjectType({}),
+      {
+        type: 'Object',
+        props: []
       }
     );
   }
@@ -312,6 +325,174 @@ class DslTests {
         ]
       }
     );
+  }
+
+  testComplex() {
+    const str = unindent(`
+      id: com.example.service
+      name: An example service
+      desc: >-
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Donec tempor sem vel varius euismod. Aenean luctus nisi
+        eget felis laoreet, nec congue eros condimentum. Duis
+        vulputate volutpat nibh.
+
+      types:
+        Foo:
+          bar: String
+        Bar:
+          type: Union
+          key: type
+          options:
+            - key: A
+              props:
+                xxx: String
+            - key: B
+              props:
+                yyy: Number
+
+      methods:
+        fetchFoo:
+          type: fetch
+          desc: Fetch foo
+          req:
+            fooId: String
+          res:
+            foo: Foo
+        updateFoo:
+          type: idempotent
+          desc: Update foo
+          req:
+            fooId: String
+            foo: Foo
+    `);
+
+    const expected = {
+      id: 'com.example.service',
+      name: 'An example service',
+      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ' +
+        'tempor sem vel varius euismod. Aenean luctus nisi eget felis ' +
+        'laoreet, nec congue eros condimentum. Duis vulputate volutpat nibh.',
+      types: [
+        {
+          name: 'Foo',
+          type: {
+            type: 'Object',
+            props: [
+              {
+                name: 'bar',
+                key: 'bar',
+                desc: '',
+                optional: false,
+                type: { type: 'String' }
+              }
+            ]
+          }
+        },
+        {
+          name: 'Bar',
+          type: {
+            type: 'Union',
+            key: 'type',
+            options: [
+              {
+                key: 'A',
+                name: 'A',
+                desc: '',
+                props: [
+                  {
+                    name: 'xxx',
+                    key: 'xxx',
+                    desc: '',
+                    optional: false,
+                    type: { type: 'String' }
+                  }
+                ]
+              },
+              {
+                key: 'B',
+                name: 'B',
+                desc: '',
+                props: [
+                  {
+                    name: 'yyy',
+                    key: 'yyy',
+                    desc: '',
+                    optional: false,
+                    type: { type: 'Number' }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+
+      ],
+      methods: [
+        {
+          name: 'fetchFoo',
+          desc: 'Fetch foo',
+          type: 'Fetch',
+          req: {
+            type: 'Object',
+            props: [
+              {
+                desc: '',
+                key: 'fooId',
+                name: 'fooId',
+                optional: false,
+                type: { type: 'String' }
+              }
+            ]
+          },
+          res: {
+            type: 'Object',
+            props: [
+              {
+                desc: '',
+                key: 'foo',
+                name: 'foo',
+                optional: false,
+                type: { type: 'Custom', ref: 'Foo' }
+              }
+            ]
+          }
+        },
+        {
+          name: 'updateFoo',
+          desc: 'Update foo',
+          type: 'Idempotent',
+          req: {
+            type: 'Object',
+            props: [
+              {
+                desc: '',
+                key: 'fooId',
+                name: 'fooId',
+                optional: false,
+                type: { type: 'String' }
+              },
+              {
+                desc: '',
+                key: 'foo',
+                name: 'foo',
+                optional: false,
+                type: { type: 'Custom', ref: 'Foo' }
+              }
+            ]
+          },
+          res: {
+            type: 'Object',
+            props: []
+          }
+        }
+      ]
+    };
+
+    const result = parseServiceDefinition(str, 'definition.yml');
+    const definition = unwrapSuccess(result);
+
+    assert.deepEqual(definition, expected);
   }
 
 }

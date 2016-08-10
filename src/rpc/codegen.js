@@ -3,7 +3,7 @@
 import type {
   Type,
   ObjectType,
-  Schema
+  ServiceDefinition
 } from './types.js';
 
 import {
@@ -56,10 +56,12 @@ export function generateFlowTypeForObjectType(type: ObjectType): string {
   return '{\n' + indent(result, 2) + '\n}';
 }
 
-export function generateServiceFile(schema: Schema): string {
+export function generateServiceFile(schema: ServiceDefinition): string {
   let result = '';
 
   result += '/* @flow */';
+
+  // TODO
 
   return result;
 }
