@@ -121,6 +121,9 @@ export function generateServiceFile(def: ServiceDefinition): string {
   result += '/* @flow */';
   result += '\n\n';
 
+  // imports
+  result += 'import type { RpcResponse } from \'ss-commons/rpc\'\n'; // TODO maybe inline?
+
   result += '// custom types\n';
   result += '\n';
 
@@ -145,6 +148,22 @@ export function generateServiceFile(def: ServiceDefinition): string {
 
     // TODO errors
   }
+
+  // facade
+
+  result += 'export interface ServiceFacade {\n';
+
+  // TODO support async methods
+  // TODO return result?
+  for (const method of def.methods) {
+    const nameUppercase = method.name[0].toUpperCase() + method.name.slice(1);
+    const requestName = nameUppercase + 'Request';
+    const responseName = nameUppercase + 'Response';
+    result += `  ${method.name}(request: ${requestName}):'
+      + ' Promise<RpcResponse<${responseName}, any>>;\n`; // TODO errors
+  }
+
+  result += '}';
 
   return result;
 }
