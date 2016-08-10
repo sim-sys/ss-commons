@@ -8,10 +8,16 @@ export type Type =
   | EnumType
   | UnionType
   | CustomType
+  | StringLiteral
 ;
 
 export type StringType = {
   type: 'String'
+};
+
+export type StringLiteral = {
+  type: 'StringLiteral',
+  val: string
 };
 
 export type NumberType = {

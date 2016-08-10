@@ -3,12 +3,14 @@
 import type {
   Type,
   ObjectType,
-  ServiceDefinition
+  ServiceDefinition,
+  UnionType,
+  EnumType
 } from './types.js';
 
 import {
-  indentAllButFirstLine,
-  indent
+  indent,
+  indentAllButFirstLine
 } from './util.js';
 
 const indentationSpaces = 2;
@@ -17,13 +19,22 @@ export function generateFlowTypeForType(type: Type): string {
   switch (type.type) {
     case 'String':
       return 'string';
+    case 'StringLiteral':
+      return `'${type.val}'`;
     case 'Number':
       return 'number';
     case 'Boolean':
       return 'boolean';
     case 'Object':
       return generateFlowTypeForObjectType(type);
+    case 'Union':
+      return generateFlowTypeForUnionType(type);
+    case 'Enum':
+      return generateFlowTypeForEnumType(type);
+    case 'Custom':
+      return type.ref;
     default:
+      (null: typeof type);
       throw new Error(`Unknown type ${type.type}`);
   }
 }
@@ -34,7 +45,7 @@ export function generateFlowTypeForObjectType(type: ObjectType): string {
     return '{}';
   }
 
-  let result = ''
+  let result = '';
 
   for (let i = 0; i < type.props.length; i++) {
     const prop = type.props[i];
@@ -53,15 +64,87 @@ export function generateFlowTypeForObjectType(type: ObjectType): string {
     result += '';
   }
 
-  return '{\n' + indent(result, 2) + '\n}';
+  return '{\n' + indent(result, indentationSpaces) + '\n}';
 }
 
-export function generateServiceFile(schema: ServiceDefinition): string {
+export function generateFlowTypeForUnionType(type: UnionType): string {
+  // TODO we should export each variant separately for convenience
   let result = '';
 
-  result += '/* @flow */';
+  // TODO this won't work in props
+  for (const option of type.options) {
+    const optionType: ObjectType = {
+      type: 'Object',
+      props: [
+        {
+          desc: '',
+          key: type.key,
+          name: type.key,
+          optional: false,
+          type: { type: 'StringLiteral', val: option.key }
+        },
+        ...option.props
+      ]
+    };
 
-  // TODO
+    result += '| ' + indentAllButFirstLine(generateFlowTypeForObjectType(optionType), 2) + '\n';
+  }
+
+  return '\n' + indent(result, indentationSpaces);
+}
+
+export function generateTypeDef(name: string, type: Type): string {
+  const typeStr = generateFlowTypeForType(type);
+
+  return `export type ${name} = ${typeStr};`;
+}
+
+export function generateFlowTypeForEnumType(type: EnumType): string {
+  let result = '';
+
+  for (let i = 0; i < type.options.length; i++) { // TODO pretty top-level style
+    const option = type.options[i];
+    result += `'${option.value}'`;
+
+    if (i !== type.options.length - 1) {
+      result += ' | ';
+    }
+  }
+
+  return result;
+}
+
+export function generateServiceFile(def: ServiceDefinition): string {
+  let result = '';
+
+  // TODO all kinds of ignores
+  result += '/* @flow */';
+  result += '\n\n';
+
+  result += '// custom types\n';
+  result += '\n';
+
+  for (const t of def.types) {
+    result += generateTypeDef(t.name, t.type);
+    result += '\n\n';
+  }
+
+  result += '\n';
+  result += '// methods\n';
+  result += '\n';
+
+  for (const method of def.methods) {
+    result += `// ${method.name}\n`;
+    const nameUppercase = method.name[0].toUpperCase() + method.name.slice(1);
+
+    result += generateTypeDef(nameUppercase + 'Request', method.req);
+    result += '\n\n';
+
+    result += generateTypeDef(nameUppercase + 'Response', method.res);
+    result += '\n\n';
+
+    // TODO errors
+  }
 
   return result;
 }

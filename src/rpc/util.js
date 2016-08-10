@@ -9,7 +9,13 @@ export function indent(str: string, spaces: number): string {
 
   return str
     .split('\n')
-    .map(l => spacesStr + l)
+    .map(l => {
+      if (l.length === 0) {
+        return l;
+      } else {
+        return spacesStr + l;
+      }
+    })
     .join('\n');
 }
 

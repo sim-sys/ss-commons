@@ -508,13 +508,19 @@ export function parseUnionOption(raw: mixed): Result<UnionOption, ParseFailure> 
     return fail('union option desc should be a string');
   }
 
-  const propsR = parseProps(raw.props);
+  let props;
 
-  if (!propsR.ok) {
-    return propsR;
+  if (typeof raw.props === 'undefined') {
+    props = [];
+  } else {
+    const propsR = parseProps(raw.props);
+
+    if (!propsR.ok) {
+      return propsR;
+    }
+
+    props = propsR.v;
   }
-
-  const props = propsR.v;
 
   const result: UnionOption = {
     key,
