@@ -37,7 +37,7 @@ function validateUnknownFields(obj: UnknownObject, knownFields: Array<string>): 
   const result = [];
 
   for (const key of keys) {
-    if (!knownFields.includes(key)) {
+    if (knownFields.indexOf(key) === -1) {
       result.push(key);
     }
   }

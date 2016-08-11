@@ -84,9 +84,8 @@ export function generateFlowTypeForUnionType(type: UnionType): string {
           name: type.key,
           optional: false,
           type: { type: 'StringLiteral', val: option.key }
-        },
-        ...option.props
-      ]
+        }
+      ].concat(option.props)
     };
 
     result += '| ' + indentAllButFirstLine(generateFlowTypeForObjectType(optionType), 2) + '\n';
