@@ -10,7 +10,8 @@ import type {
 
 import {
   indent,
-  indentAllButFirstLine
+  indentAllButFirstLine,
+  unindent
 } from './util.js';
 
 const indentationSpaces = 2;
@@ -122,7 +123,21 @@ export function generateServiceFile(def: ServiceDefinition): string {
   result += '\n\n';
 
   // imports
-  result += 'import type { RpcResponse } from \'ss-commons/rpc\'\n'; // TODO maybe inline?
+  // result += 'import type { RpcResponse } from \'ss-commons/rpc\'\n';
+  result += unindent(`
+    type RpcResponse<R, E> =
+      | {
+          success: true,
+          result: R
+        }
+      | {
+          success: false,
+          error: E
+        }
+    ;
+  `);
+
+  result += '\n';
 
   result += '// custom types\n';
   result += '\n';
@@ -159,8 +174,8 @@ export function generateServiceFile(def: ServiceDefinition): string {
     const nameUppercase = method.name[0].toUpperCase() + method.name.slice(1);
     const requestName = nameUppercase + 'Request';
     const responseName = nameUppercase + 'Response';
-    result += `  ${method.name}(request: ${requestName}):'
-      + ' Promise<RpcResponse<${responseName}, any>>;\n`; // TODO errors
+    result += `  ${method.name}(request: ${requestName}):`
+      + ` Promise<RpcResponse<${responseName}, any>>;\n`; // TODO errors
   }
 
   result += '}';
