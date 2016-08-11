@@ -16,4 +16,6 @@ export interface Filter<ReqIn, ResOut, ReqOut, ResIn> {
 
 export type SimpleFilter<Req, Res> = Filter<Req, Res, Req, Res>;
 
-export function createEmptyContext() {}
+export function createEmptyContext(): Context {
+  return new Context();
+}

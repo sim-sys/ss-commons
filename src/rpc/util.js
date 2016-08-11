@@ -77,3 +77,7 @@ export function unindent(str: string): string {
       }
     }).join('\n');
 }
+
+export function reindent(str: string, n: number): string {
+  return indent(unindent(str), n);
+}

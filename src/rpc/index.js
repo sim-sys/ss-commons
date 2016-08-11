@@ -1,6 +1,10 @@
 /* @flow */
 
 import type {
+  Service
+} from '../service/index.js';
+
+import type {
   MethodType
 } from './types';
 
@@ -20,3 +24,5 @@ export type RpcResponse<R, E> =
       error: E
     }
 ;
+
+export type RpcService = Service<RpcRequest<any>, RpcResponse<any, any>>; // TODO

@@ -5,7 +5,8 @@ import type {
   ObjectType,
   ServiceDefinition,
   UnionType,
-  EnumType
+  EnumType,
+  Method
 } from './types.js';
 
 import {
@@ -115,29 +116,97 @@ export function generateFlowTypeForEnumType(type: EnumType): string {
   return result;
 }
 
+export function generateMethodSignature(method: Method, context: boolean) {
+  const nameUppercase = method.name[0].toUpperCase() + method.name.slice(1);
+  const requestName = nameUppercase + 'Request';
+  const responseName = nameUppercase + 'Response';
+  return `${method.name}(request: ${requestName}${context ? ', ctx: Context' : ''}):`
+    + ` Promise<RpcResponse<${responseName}, any>>`; // TODO errors
+}
+
+export function generateFacade(def: ServiceDefinition, name: string, context: boolean): string {
+  let result = '';
+  result += `export interface ${name} {\n`;
+
+  // TODO support async methods
+  // TODO return result?
+  for (const method of def.methods) {
+    result += `  ${generateMethodSignature(method, context)};\n`;
+  }
+
+  result += '}\n';
+
+  return result;
+}
+
+export function generateClientClass(
+  def: ServiceDefinition,
+  name: string,
+  context: boolean
+): string {
+  let result = '';
+
+  result += unindent(`
+    class ${name} {
+      _service: RpcService;
+
+      constructor(service: RpcService) {
+        this._service = service;
+      }
+  `);
+
+  result += '\n\n';
+
+  for (const method of def.methods) {
+    // TODO response parsing
+    result += indent(unindent(`
+      async ${generateMethodSignature(method, context)} {
+        const req: RpcRequest<{}> = {
+          method: '${method.name}',
+          type: '${method.type}',
+          payload: request
+        };
+        ${context ? '' : 'const ctx = createEmptyContext();\n'}
+        const rep = await this._service.call(req, ctx);
+        return rep;
+      }
+    `), 2);
+    result += '\n\n';
+  }
+
+  result += '}\n';
+
+  return result;
+}
+
 export function generateServiceFile(def: ServiceDefinition): string {
   let result = '';
 
-  // TODO all kinds of ignores
-  result += '/* @flow */';
-  result += '\n\n';
-
-  // imports
-  // result += 'import type { RpcResponse } from \'ss-commons/rpc\'\n';
   result += unindent(`
-    type RpcResponse<R, E> =
-      | {
-          success: true,
-          result: R
-        }
-      | {
-          success: false,
-          error: E
-        }
-    ;
+    /* @flow */
+    /* THIS FILE IS GENERATED AUTOMATICALLY, DON'T EDIT! */
+    /* eslint-disable */
   `);
 
-  result += '\n';
+  result += '\n\n';
+
+  const commonsPath = 'ss-commons'; // TODO should be configurable
+
+  // imports
+  result += unindent(`
+    import type {
+      RpcRequest,
+      RpcResponse,
+      RpcService
+    } from '${commonsPath}/rpc';
+
+    import {
+      createEmptyContext,
+      Context
+    } from '${commonsPath}/service';
+  `);
+
+  result += '\n\n';
 
   result += '// custom types\n';
   result += '\n';
@@ -166,19 +235,64 @@ export function generateServiceFile(def: ServiceDefinition): string {
 
   // facade
 
-  result += 'export interface ServiceFacade {\n';
+  result += generateFacade(def, 'ServiceFacade', true);
+  result += '\n';
 
-  // TODO support async methods
-  // TODO return result?
+  result += generateFacade(def, 'ContextlessServiceFacade', false);
+  result += '\n';
+
+  // client
+
+  result += generateClientClass(def, 'Client', true);
+  result += '\n';
+
+  result += unindent(`
+    export function createClient(service: RpcService): ServiceFacade {
+      return new Client(service);
+    }
+  `);
+
+  result += '\n\n';
+
+  result += generateClientClass(def, 'ContextlessClient', false);
+  result += '\n';
+
+  result += unindent(`
+    export function createContextlessClient(service: RpcService): ContextlessServiceFacade {
+      return new ContextlessClient(service);
+    }
+  `);
+
+  result += '\n\n';
+
+  // service
+
+  // TODO parse requests
+  result += unindent(`
+    class Service {
+      _impl: ServiceFacade;
+
+      constructor(impl: ServiceFacade) {
+        this._impl = impl;
+      }
+
+      call(req: RpcRequest<any>, ctx: Context): Promise<RpcResponse<any, any>> {
+        switch (req.method) {
+  `);
+
+  result += '\n';
+
   for (const method of def.methods) {
-    const nameUppercase = method.name[0].toUpperCase() + method.name.slice(1);
-    const requestName = nameUppercase + 'Request';
-    const responseName = nameUppercase + 'Response';
-    result += `  ${method.name}(request: ${requestName}):`
-      + ` Promise<RpcResponse<${responseName}, any>>;\n`; // TODO errors
+    result += `      case '${method.name}': return this._impl.${method.name}(req.payload, ctx);\n`;
   }
 
-  result += '}';
+  result += unindent(`
+        }
+
+        throw new Error('TODO');
+      }
+    }
+  `);
 
   return result;
 }
