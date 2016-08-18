@@ -1,0 +1,11 @@
+version: '2'
+services:
+  server:
+    build: ./server
+    depends_on:
+     - rabbitmq
+  rabbitmq:
+    image: rabbitmq
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
