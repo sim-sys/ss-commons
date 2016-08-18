@@ -1353,3 +1353,11 @@ declare var __dirname: string;
 
 declare function setImmediate(callback: ((...args: Array<any>) => mixed), ...args: Array<any>): Object;
 declare function clearImmediate(immediateObject: any): Object;
+
+declare class Timeout {}
+declare class Interval {}
+
+declare function clearInterval(interval: Interval): void;
+declare function clearTimeout(timeout: Timeout): void;
+declare function setTimeout(callback: () => void, ms: number): Timeout;
+declare function setInterval(callback: () => void, ms: number): Interval;

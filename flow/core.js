@@ -586,11 +586,6 @@ declare class DataView extends ArrayBufferView {
 declare function btoa(rawString: string): string;
 declare function atob(encodedString: string): string;
 
-declare function clearInterval(intervalId?: number): void;
-declare function clearTimeout(timeoutId?: any): void;
-declare function setTimeout(callback: any, ms?: number, ...args: Array<any>): number;
-declare function setInterval(callback: any, ms?: number, ...args: Array<any>): number;
-
 /* Reflect API */
 
 declare class Reflect {

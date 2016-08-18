@@ -43,7 +43,7 @@ class Timer {
       try {
         await fn();
       } catch (e) {
-        onFailure(e);
+        onFailure(e); // TODO conver to Error, fix coverage
         return;
       }
 

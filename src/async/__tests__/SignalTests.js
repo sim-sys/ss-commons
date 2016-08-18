@@ -3,6 +3,7 @@
 import assert from 'assert';
 
 import Signal from '../Signal.js';
+import { catchPromise } from '../../util.js';
 
 class SignalTests {
   async testSignal() {
@@ -14,7 +15,7 @@ class SignalTests {
   async testFail() {
     const s = new Signal();
     process.nextTick(() => s.fail(new Error()));
-    const err = await s.wait().catch(e => e);
+    const err = await catchPromise(s.wait());
     assert(err instanceof Error);
   }
 
@@ -37,7 +38,7 @@ class SignalTests {
     }
 
     fn(s.toCallback());
-    const err = await s.wait().catch(e => e);
+    const err = await catchPromise(s.wait());
     assert(err instanceof Error);
   }
 }

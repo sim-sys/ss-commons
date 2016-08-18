@@ -21,8 +21,12 @@ class SimpleHttpServer {
   _service: ?HttpService<Buffer, Buffer>;
   _listening: boolean;
   _connections: Array<net.Socket>;
+
   constructor() {
-    this._nodeServer = http.createServer((req, res) => this._onRequest(req, res));
+    this._nodeServer = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
+      this._onRequest(req, res);
+    });
+
     this._connections = [];
     this._listening = false;
     this._service = null;
@@ -38,7 +42,7 @@ class SimpleHttpServer {
     const signal = new Signal();
 
     this._nodeServer.listen(addr.port, addr.host, signal.toCallback());
-    this._nodeServer.on('connection', socket => this._onConnection(socket));
+    this._nodeServer.on('connection', (socket: net.Socket) => this._onConnection(socket));
     await signal;
   }
 

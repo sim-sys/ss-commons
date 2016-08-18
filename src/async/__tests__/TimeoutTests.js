@@ -4,6 +4,10 @@ import assert from 'assert';
 import timeout from '../timeout.js';
 import sleep from '../sleep.js';
 import { unwrap } from '../../index.js';
+import {
+  catchPromise,
+  convertToError
+} from '../../util.js';
 
 class TimeoutTests {
 
@@ -13,17 +17,13 @@ class TimeoutTests {
   }
 
   async testTimeoutFailure() {
-    let err;
+    const err = await catchPromise(
+      timeout(async () => {
+         await sleep(100);
+       }, 0)
+    );
 
-    try {
-     await timeout(async () => {
-        await sleep(100);
-      }, 0);
-    } catch (e) {
-      err = e;
-    }
-
-    assert.equal(unwrap(err).message, 'Timeout');
+    assert.equal(convertToError(err).message, 'Timeout');
   }
 
 }
