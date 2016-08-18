@@ -61,13 +61,14 @@ function parseConfig(config: MaybeConfig): Config {
 // startup eagerly
 class SimpleHttpClient {
   config: Config;
-  _agent: any; // TODO add proper type
+  _request: any; // TODO add type;
+  _agent: any; // TODO add type
 
   constructor(config: MaybeConfig) {
     this.config = parseConfig(config);
-    this._agent = this.config.secure ?
-      new (https: any).Agent() :
-      new (http: any).Agent({ keepAlive: true });
+    const module: any = config.secure ? https : http;
+    this._agent = new module.Agent({ keepAlive: true });
+    this._request = module.request;
   }
 
   async call(req: HttpRequest<?Buffer>): Promise<HttpResponse<?Buffer>> {
@@ -90,7 +91,7 @@ class SimpleHttpClient {
       agent: this._agent
     };
 
-    const nodeReq = http.request(opts, res => s.emit(res));
+    const nodeReq = this._request(opts, res => s.emit(res));
 
     const errS: Signal<void> = new Signal();
     let error = null;

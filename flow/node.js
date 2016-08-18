@@ -704,6 +704,7 @@ declare module "http" {
 declare module "https" {
   declare class Server extends tls$Server {
     listen(port: number, hostname?: string, backlog?: number, callback?: Function): Server;
+    listen(port: number, hostname?: string, callback?: Function): Server;
     listen(path: string, callback?: Function): Server;
     listen(handle: Object, callback?: Function): Server;
     close(callback?: Function): Server;
