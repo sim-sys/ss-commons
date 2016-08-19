@@ -27,13 +27,13 @@ function readFile(absolutePath: string) {
       } else {
         resolve(buffer);
       }
-    })
+    });
   });
 }
 
 
 function tryFile(absolutePath: string): Promise<?Buffer> {
-  return readFile(absolutePath).then(e => null);
+  return readFile(absolutePath).then(() => null);
 }
 
 async function magicReadFile(absolutePath: string): Promise<?[Buffer, string]> {
@@ -41,7 +41,7 @@ async function magicReadFile(absolutePath: string): Promise<?[Buffer, string]> {
 
   if (ext) {
     const buffer = await tryFile(absolutePath);
-    return buffer ? [buffer, ext]: null;
+    return buffer ? [buffer, ext] : null;
   }
 
   const html = await tryFile(path.join(absolutePath, 'index.html'));
@@ -58,8 +58,6 @@ async function magicReadFile(absolutePath: string): Promise<?[Buffer, string]> {
 
   return null;
 }
-
-
 
 class StaticHttpService {
   deps: Deps;
@@ -101,7 +99,7 @@ class StaticHttpService {
         'content-type': contentType
       },
       body
-    }
+    };
   }
 
 }

@@ -7,6 +7,7 @@ import type {
 
 export interface Codec {
   encodeRequest(req: RpcRequest<any>): Buffer;
-  decodeResponse(res: RpcResponse<any, any>): Buffer;
+  decodeResponse(buff: Buffer): RpcResponse<any, any>;
   decodeRequest(buff: Buffer): RpcRequest<any>; // TODO
+  encodeResponse(res: RpcResponse<any, any>): Buffer;
 }
