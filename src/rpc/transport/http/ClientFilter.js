@@ -21,8 +21,8 @@ import type {
 
 type ReqIn = RpcRequest<any>;
 type ResOut = RpcResponse<any, any>;
-type ReqOut = HttpRequest<Buffer>;
-type ResIn = HttpResponse<Buffer>;
+type ReqOut = HttpRequest<?Buffer>;
+type ResIn = HttpResponse<?Buffer>;
 
 type Deps = {
   codec: Codec,
@@ -54,7 +54,7 @@ class ClientHttpRpcFilter {
 
     // TODO check status
     // TODO check content type
-    const res = codec.decodeResponse(httpRes.body);
+    const res = codec.decodeResponse(httpRes.body || new Buffer('')); // TODO
 
     return res;
   }
