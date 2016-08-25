@@ -5,19 +5,19 @@ import type {
   ObjectType,
   ServiceDefinition,
   UnionType,
+  UnionOption,
   EnumType,
   Method
 } from './types.js';
 
 import {
   indent,
-  indentAllButFirstLine,
   unindent
 } from './util.js';
 
 const indentationSpaces = 2;
 
-export function generateFlowTypeForType(type: Type): string {
+export function generateFlowTypeForType(name: string, type: Type): string {
   switch (type.type) {
     case 'String':
       return 'string';
@@ -30,7 +30,7 @@ export function generateFlowTypeForType(type: Type): string {
     case 'Object':
       return generateFlowTypeForObjectType(type);
     case 'Union':
-      return generateFlowTypeForUnionType(type);
+      return generateFlowTypeForUnionType(name, type);
     case 'Enum':
       return generateFlowTypeForEnumType(type);
     case 'Custom':
@@ -57,7 +57,7 @@ export function generateFlowTypeForObjectType(type: ObjectType): string {
       result += '?';
     }
 
-    result += generateFlowTypeForType(prop.type);
+    result += generateFlowTypeForType('', prop.type); // TODO this will break unions
 
     if (i !== type.props.length - 1) {
       result += ',\n';
@@ -69,45 +69,55 @@ export function generateFlowTypeForObjectType(type: ObjectType): string {
   return '{\n' + indent(result, indentationSpaces) + '\n}';
 }
 
-export function generateFlowTypeForUnionType(type: UnionType): string {
-  // TODO we should export each variant separately for convenience
-  let result = '';
+function objectTypeForUnionOption(key: string, option: UnionOption): Type {
+  return {
+    type: 'Object',
+    props: [
+      {
+        desc: '',
+        key,
+        name: key,
+        optional: false,
+        type: { type: 'StringLiteral', val: option.key }
+      }
+    ].concat(option.props)
+  };
+}
 
-  // TODO this won't work in props
-  for (const option of type.options) {
-    const optionType: ObjectType = {
-      type: 'Object',
-      props: [
-        {
-          desc: '',
-          key: type.key,
-          name: type.key,
-          optional: false,
-          type: { type: 'StringLiteral', val: option.key }
-        }
-      ].concat(option.props)
-    };
-
-    result += '| ' + indentAllButFirstLine(generateFlowTypeForObjectType(optionType), 2) + '\n';
-  }
-
-  return '\n' + indent(result, indentationSpaces);
+export function generateFlowTypeForUnionType(name: string, type: UnionType): string {
+  return generateOneLineUnionDef(type.options.map(o => name + o.key));
 }
 
 export function generateTypeDef(name: string, type: Type): string {
-  const typeStr = generateFlowTypeForType(type);
+  let result = '';
 
-  return `export type ${name} = ${typeStr};`;
+  if (type.type === 'Union') {
+    for (const option of type.options) {
+      const optionTypeName = name + option.key;
+      const optionType = objectTypeForUnionOption(type.key, option);
+      result += generateTypeDef(optionTypeName, optionType);
+      result += '\n\n';
+    }
+  }
+
+  const typeStr = generateFlowTypeForType(name, type);
+
+  result += `export type ${name} = ${typeStr};`;
+
+  return result;
 }
 
 export function generateFlowTypeForEnumType(type: EnumType): string {
+  return generateOneLineUnionDef(type.options.map(o => `'${o.value}'`));
+}
+
+export function generateOneLineUnionDef(defs: Array<string>): string {
   let result = '';
 
-  for (let i = 0; i < type.options.length; i++) { // TODO pretty top-level style
-    const option = type.options[i];
-    result += `'${option.value}'`;
+  for (let i = 0; i < defs.length; i++) {
+    result += defs[i];
 
-    if (i !== type.options.length - 1) {
+    if (i !== defs.length - 1) {
       result += ' | ';
     }
   }

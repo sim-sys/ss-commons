@@ -6,8 +6,7 @@ import {
 } from '../codegen.js';
 
 import {
-  unindent,
-  indent
+  unindent
 } from '../util.js';
 
 import type { Type } from '../types.js';
@@ -59,7 +58,7 @@ class CodegenTests {
       ]
     };
 
-    const code = generateFlowTypeForType(type);
+    const code = generateFlowTypeForType('', type);
 
     assert.equal(code, unindent(`
       {
@@ -74,14 +73,14 @@ class CodegenTests {
   }
 
   testEmptyObject() {
-    assert.equal(generateFlowTypeForType({
+    assert.equal(generateFlowTypeForType('', {
       type: 'Object',
       props: []
     }), '{}');
   }
 
   testEnum() {
-    assert.equal(generateFlowTypeForType({
+    assert.equal(generateFlowTypeForType('', {
       type: 'Enum',
       options: [
         {
@@ -99,7 +98,7 @@ class CodegenTests {
   }
 
   testUnion() {
-    assert.equal(generateFlowTypeForType({
+    assert.equal(generateFlowTypeForType('Baz', {
       type: 'Union',
       key: 'type',
       options: [
@@ -116,14 +115,7 @@ class CodegenTests {
           props: []
         }
       ]
-    }), '\n' + indent(unindent(`
-      | {
-          type: 'Foo'
-        }
-      | {
-          type: 'Bar'
-        }
-    `), 2) + '\n');
+    }), 'BazFoo | BazBar');
   }
 }
 
