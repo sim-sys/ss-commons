@@ -293,5 +293,13 @@ export function generateServiceFile(def: ServiceDefinition): string {
     }
   `);
 
+  result += '\n\n';
+
+  result += unindent(`
+    export function createService(impl: ServiceFacade): RpcService {
+      return new Service(impl);
+    }
+  `);
+
   return result;
 }
