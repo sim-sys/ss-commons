@@ -17,9 +17,9 @@ import { applyFilter } from '../../../service/util.js';
 export async function createSimpleHttpRpcClient(baseUrl: string): Promise<RpcService> {
   const parsedUrl = url.parse(baseUrl);
 
-  const { host, port, protocol } = parsedUrl;
+  const { hostname, port, protocol } = parsedUrl;
 
-  if (!host) {
+  if (!hostname) {
     throw new Error(`url contains no host: ${baseUrl}`);
   }
 
@@ -43,7 +43,7 @@ export async function createSimpleHttpRpcClient(baseUrl: string): Promise<RpcSer
   }
 
   const httpClient = new SimpleHttpClient({
-    hostname: host,
+    hostname,
     port: numberPort,
     secure: protocol === 'https:'
   });
