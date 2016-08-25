@@ -2,6 +2,10 @@
 
 import Context from './Context.js';
 
+import {
+  applyFilter
+} from './util.js';
+
 export {
   Context
 };
@@ -19,3 +23,7 @@ export type SimpleFilter<Req, Res> = Filter<Req, Res, Req, Res>;
 export function createEmptyContext(): Context {
   return new Context();
 }
+
+export {
+  applyFilter
+};
