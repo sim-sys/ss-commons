@@ -13,7 +13,7 @@ class LockTests {
     const wg = new WaitGroup(3);
     const lock = new Lock();
 
-    lock.synchronize(async function() {
+    lock.synchronize(async () => {
       arr.push(0);
       await sleep(0);
       arr.push(1);
@@ -24,7 +24,7 @@ class LockTests {
 
     await sleep(0);
 
-    lock.synchronize(async function() {
+    lock.synchronize(async () => {
       arr.push(3);
       await sleep(0);
       arr.push(4);
@@ -35,7 +35,7 @@ class LockTests {
       wg.done();
     });
 
-    lock.synchronize(async function() {
+    lock.synchronize(async () => {
       arr.push(7);
       await sleep(0);
       arr.push(8);
