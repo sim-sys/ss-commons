@@ -15,8 +15,8 @@ declare var NaN: number;
 declare var Infinity: number;
 declare var undefined: void;
 
-declare function parseInt(string: string, radix?: number): number;
-declare function parseFloat(string: string): number;
+declare function parseInt(string: mixed, radix?: number): number;
+declare function parseFloat(string: mixed): number;
 declare function isNaN(number: mixed): boolean;
 declare function isFinite(number: mixed): boolean;
 declare function decodeURI(encodedURI: string): string;
@@ -26,26 +26,30 @@ declare function encodeURIComponent(uriComponent: string): string;
 
 // TODO: instance
 declare class Object {
-    static (o: string): String;
-    static (o: number): Number;
-    static (o: boolean): Boolean;
     static (o: ?void): {[key: any]: any};
+    static (o: boolean): Boolean;
+    static (o: number): Number;
+    static (o: string): String;
     static <T: Object>(o: T): T;
-    static getPrototypeOf: Object$GetPrototypeOf;
+    static assign: Object$Assign;
+    static create(o: any, properties?: any): any; // compiler magic
+    static defineProperties(o: any, properties: any): any;
+    static defineProperty(o: any, p: any, attributes: any): any;
+    static entries(object: any): Array<[string, mixed]>;
+    static freeze<T>(o: T): T;
     static getOwnPropertyDescriptor(o: any, p: any): any;
     static getOwnPropertyNames(o: any): Array<string>;
-    static create(o: any, properties?: any): any; // compiler magic
-    static defineProperty(o: any, p: any, attributes: any): any;
-    static defineProperties(o: any, properties: any): any;
-    static seal(o: any): any;
-    static freeze<T>(o: T): T;
-    static preventExtensions(o: any): any;
+    static getOwnPropertySymbols(o: any): Symbol[];
+    static getPrototypeOf: Object$GetPrototypeOf;
     static is(a: any, b: any): boolean;
-    static isSealed(o: any): boolean;
-    static isFrozen(o: any): boolean;
     static isExtensible(o: any): boolean;
+    static isFrozen(o: any): boolean;
+    static isSealed(o: any): boolean;
     static keys(o: any): Array<string>;
-    static assign: Object$Assign;
+    static preventExtensions(o: any): any;
+    static seal(o: any): any;
+    static setPrototypeOf(o: any, proto: ?Object): bool;
+    static values(object: any): Array<mixed>;
     hasOwnProperty(prop: any): boolean;
     propertyIsEnumerable(prop: any): boolean;
     toLocaleString(): string;
@@ -54,9 +58,37 @@ declare class Object {
     [key:any]: any;
 }
 
+// Well known Symbols.
+declare class $SymbolHasInstance mixins Symbol {}
+declare class $SymboIsConcatSpreadable mixins Symbol {}
+declare class $SymbolIterator mixins Symbol {}
+declare class $SymbolMatch mixins Symbol {}
+declare class $SymbolReplace mixins Symbol {}
+declare class $SymbolSearch mixins Symbol {}
+declare class $SymbolSpecies mixins Symbol {}
+declare class $SymbolSplit mixins Symbol {}
+declare class $SymbolToPrimitive mixins Symbol {}
+declare class $SymbolToStringTag mixins Symbol {}
+declare class $SymbolUnscopables mixins Symbol {}
+
 declare class Symbol {
-  static iterator: string; // polyfill '@@iterator'
   static (value?:any): Symbol;
+  static for(key: string): Symbol;
+  static hasInstance: $SymbolHasInstance;
+  static isConcatSpreadable: $SymboIsConcatSpreadable;
+  static iterator: string; // polyfill '@@iterator'
+  static keyFor(sym: Symbol): ?string;
+  static length: 0;
+  static match: $SymbolMatch;
+  static replace: $SymbolReplace;
+  static search: $SymbolSearch;
+  static species: $SymbolSpecies;
+  static split: $SymbolSplit;
+  static toPrimitive: $SymbolToPrimitive;
+  static toStringTag: $SymbolToStringTag;
+  static unscopables: $SymbolUnscopables;
+  toString(): string;
+  valueOf(): ?Symbol;
 }
 
 // TODO: instance, static
@@ -76,16 +108,6 @@ declare class Boolean {
 }
 
 declare class Number {
-    toFixed(fractionDigits?: number): string;
-    toExponential(fractionDigits?: number): string;
-    toPrecision(precision?: number): string;
-    toString(radix?: number): string;
-    valueOf(): number;
-    static isFinite(value: any): boolean;
-    static isInteger(value: any): boolean;
-    static isNaN(value: any): boolean;
-    static isSafeInteger(value: any): boolean;
-    static (value:any):number;
     static EPSILON: number;
     static MAX_SAFE_INTEGER: number;
     static MAX_VALUE: number;
@@ -94,14 +116,26 @@ declare class Number {
     static NaN: number;
     static NEGATIVE_INFINITY: number;
     static POSITIVE_INFINITY: number;
+    static (value:any):number;
+    static isFinite(value: any): boolean;
+    static isInteger(value: any): boolean;
+    static isNaN(value: any): boolean;
+    static isSafeInteger(value: any): boolean;
+    static parseFloat(value: string): number;
+    static parseInt(value: string): number;
+    toExponential(fractionDigits?: number): string;
+    toFixed(fractionDigits?: number): string;
+    toPrecision(precision?: number): string;
+    toString(radix?: number): string;
+    valueOf(): number;
 }
 
 declare var Math: {
     E: number;
     LN10: number;
     LN2: number;
-    LOG2E: number;
     LOG10E: number;
+    LOG2E: number;
     PI: number;
     SQRT1_2: number;
     SQRT2: number;
@@ -111,8 +145,8 @@ declare var Math: {
     asin(x: number): number;
     asinh(x: number): number;
     atan(x: number): number;
-    atanh(x: number): number;
     atan2(y: number, x: number): number;
+    atanh(x: number): number;
     cbrt(x: number): number;
     ceil(x: number): number;
     clz32(x: number): number;
@@ -125,8 +159,8 @@ declare var Math: {
     hypot(...values: Array<number>): number;
     imul(y: number, x: number): number;
     log(x: number): number;
-    log1p(x: number): number;
     log10(x: number): number;
+    log1p(x: number): number;
     log2(x: number): number;
     max(...values: Array<number>): number;
     min(...values: Array<number>): number;
@@ -147,97 +181,183 @@ declare class Array<T> {
     toLocaleString(): string;
     // concat creates a new array
     concat<S, Item: Array<S> | S>(...items: Array<Item>): Array<T | S>;
+    copyWithin(target: number, start: number, end?: number): T[];
+    entries(): Iterator<[number, T]>;
+    every(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): boolean;
+    fill(value: T, begin?: number, end?: number): Array<T>;
+    filter(callbackfn: typeof Boolean): Array<$NonMaybeType<T>>;
+    filter(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): Array<T>;
+    find(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): T | void;
+    findIndex(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): number;
+    forEach(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): void;
+    includes(searchElement: T, fromIndex?: number): boolean;
+    indexOf(searchElement: T, fromIndex?: number): number;
     join(separator?: string): string;
+    keys(): Iterator<number>;
+    lastIndexOf(searchElement: T, fromIndex?: number): number;
+    map<U>(callbackfn: (value: T, index: number, array: Array<T>) => U, thisArg?: any): Array<U>;
     pop(): T;
     push(...items: Array<T>): number;
+    reduce(
+      callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: Array<T>) => T,
+      initialValue: void
+    ): T;
+    reduce<U>(
+      callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: Array<T>) => U,
+      initialValue: U
+    ): U;
+    reduceRight(
+      callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: Array<T>) => T,
+      initialValue: void
+    ): T;
+    reduceRight<U>(
+      callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: Array<T>) => U,
+      initialValue: U
+    ): U;
     reverse(): Array<T>;
     shift(): T;
     slice(start?: number, end?: number): Array<T>;
+    some(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): boolean;
     sort(compareFn?: (a: T, b: T) => number): Array<T>;
     splice(start: number, deleteCount?: number, ...items: Array<T>): Array<T>;
     unshift(...items: Array<T>): number;
-    indexOf(searchElement: T, fromIndex?: number): number;
-    includes(searchElement: T, fromIndex?: number): boolean;
-    lastIndexOf(searchElement: T, fromIndex?: number): number;
-    every(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): boolean;
-    some(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): boolean;
-    forEach(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): void;
-    map<U>(callbackfn: (value: T, index: number, array: Array<T>) => U, thisArg?: any): Array<U>;
-    fill(value: T, begin?: number, end?: number): Array<T>;
-    filter(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): Array<T>;
-    find(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): T;
-    findIndex(callbackfn: (value: T, index: number, array: Array<T>) => any, thisArg?: any): number;
-    reduce<U>(
-      callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: Array<T>) => U,
-      initialValue: U
-    ): U;
-    reduce<U>(
-      callbackfn: (previousValue: T|U, currentValue: T, currentIndex: number, array: Array<T>) => U
-    ): U;
-    reduceRight<U>(
-      callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: Array<T>) => U,
-      initialValue: U
-    ): U;
-    reduceRight<U>(
-      callbackfn: (previousValue: T|U, currentValue: T, currentIndex: number, array: Array<T>) => U
-    ): U;
-    keys(): Iterator<number>;
     values(): Iterator<T>;
-    entries(): Iterator<[number, T]>;
     length: number;
     static (...values:Array<any>): Array<any>;
     static isArray(obj: any): bool;
-    static from<A, B>(arrayLike: any, mapFn?: ?(elem: A, index: number) => B, thisArg?: ?any): Array<B>;
+    static from<A, B>(iter: Iterable<A>, mapFn: (elem: A, index: number) => B, thisArg?: any): Array<B>;
+    static from<A>(iter: Iterable<A>, mapFn: void): Array<A>;
+    static from<A, B>(iter: Iterator<A>, mapFn: (elem: A, index: number) => B, thisArg?: any): Array<B>;
+    static from<A>(iter: Iterator<A>, mapFn: void): Array<A>;
+    static from<A>(arrayLike: {length: number}, mapFn: (elem: void, index: number) => A, thisArg?: any): Array<A>;
+    static from(arrayLike: {length: number}, mapFn: void): Array<void>;
+    static of(...values: any[]): any[];
 }
 
 declare class String {
     @@iterator(): Iterator<string>;
+    anchor(name: string): string;
     charAt(pos: number): string;
     charCodeAt(index: number): number;
     codePointAt(index: number): number;
     concat(...strings: Array<string>): string;
-    contains(substr: string): boolean;
+    endsWith(searchString: string, position?: number): boolean;
     includes(searchString: string, position?: number): boolean;
     indexOf(searchString: string, position?: number): number;
     lastIndexOf(searchString: string, position?: number): number;
+    link(href: string): string;
     localeCompare(that: string): number;
     match(regexp: string | RegExp): ?Array<string>;
-    startsWith(searchString: string, position?: number): boolean;
-    endsWith(searchString: string, position?: number): boolean;
+    normalize(format?: string): string;
+    padEnd(targetLength: number, padString?: string): string;
+    padStart(targetLength: number, padString?: string): string;
     repeat(count: number): string;
     replace(searchValue: string | RegExp, replaceValue: string | (substring: string, ...args: Array<any>) => string): string;
     search(regexp: string | RegExp): number;
     slice(start?: number, end?: number): string;
     split(separator: string | RegExp, limit?: number): Array<string>;
+    startsWith(searchString: string, position?: number): boolean;
+    substr(from: number, length?: number): string;
     substring(start: number, end?: number): string;
-    toLowerCase(): string;
     toLocaleLowerCase(): string;
-    toUpperCase(): string;
     toLocaleUpperCase(): string;
+    toLowerCase(): string;
+    toUpperCase(): string;
     trim(): string;
+    trimLeft(): string;
+    trimRight(): string;
     valueOf(): string;
     length: number;
-    substr(from: number, length?: number): string;
     static (value:any):string;
     static fromCharCode(...codes: Array<number>): string;
     static fromCodePoint(...codes: Array<number>): string;
+    static raw(templateString: string): string;
+    static raw(callSite: $Shape<{raw: string}>, ...substitutions: any[]): string;
 }
 
 type RegExp$flags =
-  'i' | 'g' | 'm' | 'ig' | 'im' | 'gi' | 'gm' | 'mi' | 'mg' |
-  'igm' | 'img' | 'gim' | 'gmi' | 'mig' | 'mgi'
+  'i' | 'g' | 'm' | 'u' | 'y' |
+  'ig' | 'im' | 'iu' | 'iy' |
+  'gi' | 'gm' | 'gu' | 'gy' |
+  'mi' | 'mg' | 'mu' | 'my' |
+  'ui' | 'ug' | 'um' | 'uy' |
+  'yi' | 'yg' | 'ym' | 'yu' |
+  'igm' | 'igu' | 'igy' |
+  'img' | 'imu' | 'imy' |
+  'iug' | 'ium' | 'iuy' |
+  'iyg' | 'iym' | 'iyu' |
+  'giy' | 'gim' | 'giu' |
+  'gmy' | 'gmi' | 'gmu' |
+  'guy' | 'gui' | 'gum' |
+  'gyu' | 'gyi' | 'gym' |
+  'miu' | 'miy' | 'mig' |
+  'mgu' | 'mgy' | 'mgi' |
+  'mug' | 'muy' | 'mui' |
+  'myg' | 'myu' | 'myi' |
+  'uig' | 'uim' | 'uiy' |
+  'ugi' | 'ugm' | 'ugy' |
+  'umi' | 'umg' | 'umy' |
+  'uyi' | 'uyg' | 'uym' |
+  'yiu' | 'yig' | 'yim' |
+  'ygu' | 'ygi' | 'ygm' |
+  'ymu' | 'ymi' | 'ymg' |
+  'yum' | 'yui' | 'yug' |
+  'igmu' | 'igmy' | 'igum' | 'iguy' | 'igym' | 'igyu' |
+  'imgy' | 'imgu' | 'imuy' | 'imug' | 'imyu' | 'imyg' |
+  'iugm' | 'iugy' | 'iumg' | 'iumy' | 'iuyg' | 'iuym' |
+  'iygu' | 'iygm' | 'iymu' | 'iymg' | 'iyum' | 'iyug' |
+  'giym' | 'giyu' | 'gimy' | 'gimu' | 'giuy' | 'gium' |
+  'gmyu' | 'gmyi' | 'gmiu' | 'gmiy' | 'gmui' | 'gmuy' |
+  'guyi' | 'guym' | 'guiy' | 'guim' | 'gumy' | 'gumi' |
+  'gyum' | 'gyui' | 'gyim' | 'gyiu' | 'gymi' | 'gymu' |
+  'miuy' | 'miug' | 'miyu' | 'miyg' | 'migu' | 'migy' |
+  'mgui' | 'mguy' | 'mgyi' | 'mgyu' | 'mgiy' | 'mgiu' |
+  'mugy' | 'mugi' | 'muyg' | 'muyi' | 'muig' | 'muiy' |
+  'mygi' | 'mygu' | 'myui' | 'myug' | 'myiu' | 'myig' |
+  'uigm' | 'uigy' | 'uimg' | 'uimy' | 'uiyg' | 'uiym' |
+  'ugiy' | 'ugim' | 'ugmy' | 'ugmi' | 'ugym' | 'ugyi' |
+  'umig' | 'umiy' | 'umgi' | 'umgy' | 'umyi' | 'umyg' |
+  'uyim' | 'uyig' | 'uygm' | 'uygi' | 'uymg' | 'uymi' |
+  'yiug' | 'yium' | 'yigu' | 'yigm' | 'yimu' | 'yimg' |
+  'ygum' | 'ygui' | 'ygim' | 'ygiu' | 'ygmi' | 'ygmu' |
+  'ymui' | 'ymug' | 'ymiu' | 'ymig' | 'ymgu' | 'ymgi' |
+  'yumg' | 'yumi' | 'yuig' | 'yuim' | 'yugi' | 'yugm' |
+  'igmuy' | 'igmyu' | 'igumy' | 'iguym' | 'igymu' | 'igyum' |
+  'imgyu' | 'imguy' | 'imuyg' | 'imugy' | 'imyug' | 'imygu' |
+  'iugmy' | 'iugym' | 'iumgy' | 'iumyg' | 'iuygm' | 'iuymg' |
+  'iygum' | 'iygmu' | 'iymug' | 'iymgu' | 'iyumg' | 'iyugm' |
+  'giymu' | 'giyum' | 'gimyu' | 'gimuy' | 'giuym' | 'giumy' |
+  'gmyui' | 'gmyiu' | 'gmiuy' | 'gmiyu' | 'gmuiy' | 'gmuyi' |
+  'guyim' | 'guymi' | 'guiym' | 'guimy' | 'gumyi' | 'gumiy' |
+  'gyumi' | 'gyuim' | 'gyimu' | 'gyium' | 'gymiu' | 'gymui' |
+  'miuyg' | 'miugy' | 'miyug' | 'miygu' | 'miguy' | 'migyu' |
+  'mguiy' | 'mguyi' | 'mgyiu' | 'mgyui' | 'mgiyu' | 'mgiuy' |
+  'mugyi' | 'mugiy' | 'muygi' | 'muyig' | 'muigy' | 'muiyg' |
+  'mygiu' | 'mygui' | 'myuig' | 'myugi' | 'myiug' | 'myigu' |
+  'uigmy' | 'uigym' | 'uimgy' | 'uimyg' | 'uiygm' | 'uiymg' |
+  'ugiym' | 'ugimy' | 'ugmyi' | 'ugmiy' | 'ugymi' | 'ugyim' |
+  'umigy' | 'umiyg' | 'umgiy' | 'umgyi' | 'umyig' | 'umygi' |
+  'uyimg' | 'uyigm' | 'uygmi' | 'uygim' | 'uymgi' | 'uymig' |
+  'yiugm' | 'yiumg' | 'yigum' | 'yigmu' | 'yimug' | 'yimgu' |
+  'ygumi' | 'yguim' | 'ygimu' | 'ygium' | 'ygmiu' | 'ygmui' |
+  'ymuig' | 'ymugi' | 'ymiug' | 'ymigu' | 'ymgui' | 'ymgiu' |
+  'yumgi' | 'yumig' | 'yuigm' | 'yuimg' | 'yugim' | 'yugmi';
 
 declare class RegExp {
     static (pattern: string | RegExp, flags?: RegExp$flags): RegExp;
+    compile(): RegExp;
     constructor(pattern: string | RegExp, flags?: RegExp$flags): RegExp;
     exec(string: string): any;
-    test(string: string): boolean;
-    source: string;
+    flags: string;
     global: boolean;
     ignoreCase: boolean;
-    multiline: boolean;
     lastIndex: number;
-    compile(): RegExp;
+    multiline: boolean;
+    source: string;
+    sticky: bool;
+    unicode: bool;
+    test(string: string): boolean;
+    toString(): string;
 }
 
 declare class Date {
@@ -248,53 +368,73 @@ declare class Date {
     // TODO: This should specify an overloaded constructor once they're
     // supported, instead of a union type for the first argument.
     constructor(value?: number | string, month?: number, day?: number, hour?: number, minute?: number, second?: number, millisecond?: number): void;
-    toDateString(): string;
-    toTimeString(): string;
-    toLocaleString(): string;
-    toLocaleDateString(): string;
-    toLocaleTimeString(): string;
-    valueOf(): number;
-    getTime(): number;
-    getFullYear(): number;
-    getUTCFullYear(): number;
-    getMonth(): number;
-    getUTCMonth(): number;
     getDate(): number;
-    getUTCDate(): number;
     getDay(): number;
-    getUTCDay(): number;
+    getFullYear(): number;
     getHours(): number;
-    getUTCHours(): number;
-    getMinutes(): number;
-    getUTCMinutes(): number;
-    getSeconds(): number;
-    getUTCSeconds(): number;
     getMilliseconds(): number;
-    getUTCMilliseconds(): number;
+    getMinutes(): number;
+    getMonth(): number;
+    getSeconds(): number;
+    getTime(): number;
     getTimezoneOffset(): number;
-    setTime(time: number): number;
-    setMilliseconds(ms: number): number;
-    setUTCMilliseconds(ms: number): number;
-    setSeconds(sec: number, ms?: number): number;
-    setUTCSeconds(sec: number, ms?: number): number;
-    setMinutes(min: number, sec?: number, ms?: number): number;
-    setUTCMinutes(min: number, sec?: number, ms?: number): number;
-    setHours(hours: number, min?: number, sec?: number, ms?: number): number;
-    setUTCHours(hours: number, min?: number, sec?: number, ms?: number): number;
+    getUTCDate(): number;
+    getUTCDay(): number;
+    getUTCFullYear(): number;
+    getUTCHours(): number;
+    getUTCMilliseconds(): number;
+    getUTCMinutes(): number;
+    getUTCMonth(): number;
+    getUTCSeconds(): number;
     setDate(date: number): number;
-    setUTCDate(date: number): number;
-    setMonth(month: number, date?: number): number;
-    setUTCMonth(month: number, date?: number): number;
     setFullYear(year: number, month?: number, date?: number): number;
+    setHours(hours: number, min?: number, sec?: number, ms?: number): number;
+    setMilliseconds(ms: number): number;
+    setMinutes(min: number, sec?: number, ms?: number): number;
+    setMonth(month: number, date?: number): number;
+    setSeconds(sec: number, ms?: number): number;
+    setTime(time: number): number;
+    setUTCDate(date: number): number;
     setUTCFullYear(year: number, month?: number, date?: number): number;
-    toUTCString(): string;
+    setUTCHours(hours: number, min?: number, sec?: number, ms?: number): number;
+    setUTCMilliseconds(ms: number): number;
+    setUTCMinutes(min: number, sec?: number, ms?: number): number;
+    setUTCMonth(month: number, date?: number): number;
+    setUTCSeconds(sec: number, ms?: number): number;
+    toDateString(): string;
     toISOString(): string;
     toJSON(key?: any): string;
+    toLocaleDateString(): string;
+    toLocaleString(): string;
+    toLocaleTimeString(): string;
+    toTimeString(): string;
+    toUTCString(): string;
+    valueOf(): number;
 
     static ():string;
+    static now(): number;
     static parse(s: string): number;
     static UTC(year: number, month: number, date?: number, hours?: number, minutes?: number, seconds?: number, ms?: number): number;
-    static now(): number;
+    // multiple indexers not yet supported
+    [key: $SymbolToPrimitive]: (hint: 'string' | 'default' | 'number') => string | number;
+}
+
+declare class CallSite {
+    getThis(): any;
+    getTypeName(): string;
+    getFunction(): ?Function;
+    getFunctionName(): string;
+    getMethodName(): string;
+    getFileName(): ?string;
+    getLineNumber(): ?number;
+    getColumnNumber(): ?number;
+    getEvalOrigin(): ?CallSite;
+    getScriptNameOrSourceURL(): ?string;
+    isToplevel(): bool;
+    isEval(): bool;
+    isNative(): bool;
+    isConstructor(): bool;
+    toString(): string;
 }
 
 declare class Error {
@@ -302,6 +442,12 @@ declare class Error {
     name: string;
     message: string;
     stack: string;
+
+    // note: v8 only (node/chrome)
+    static captureStackTrace(target: Object, constructor?: Function): void;
+
+    static stackTraceLimit: number;
+    static prepareStackTrace: (err: Error, stack: CallSite[]) => mixed;
 }
 
 declare class EvalError extends Error {
@@ -340,16 +486,18 @@ type IteratorResult<Yield,Return> = {
   value: Yield,
 };
 
-interface $Iterator<Yield,Return,Next> {
+interface $Iterator<+Yield,+Return,-Next> {
     @@iterator(): $Iterator<Yield,Return,Next>;
     next(value?: Next): IteratorResult<Yield,Return>;
 }
-type Iterator<T> = $Iterator<T,void,void>;
+type Iterator<+T> = $Iterator<T,void,void>;
 
-interface $Iterable<Yield,Return,Next> {
+interface $Iterable<+Yield,+Return,-Next> {
     @@iterator(): $Iterator<Yield,Return,Next>;
 }
-type Iterable<T> = $Iterable<T,void,void>;
+type Iterable<+T> = $Iterable<T,void,void>;
+
+declare function $iterate<T>(p: Iterable<T>): T;
 
 /* Generators */
 interface Generator<+Yield,+Return,-Next> {
@@ -363,10 +511,7 @@ interface Generator<+Yield,+Return,-Next> {
 
 declare class Map<K, V> {
     @@iterator(): Iterator<[K, V]>;
-    constructor<Key, Value>(_: void): Map<Key, Value>;
-    constructor<Key, Value>(_: null): Map<Key, Value>;
-    constructor<Key, Value>(iterable: Array<[Key, Value]>): Map<Key, Value>;
-    constructor<Key, Value>(iterable: Iterable<[Key, Value]>): Map<Key, Value>;
+    constructor(iterable: ?Iterable<[K, V]>): void;
     clear(): void;
     delete(key: K): boolean;
     entries(): Iterator<[K, V]>;
@@ -377,6 +522,8 @@ declare class Map<K, V> {
     set(key: K, value: V): Map<K, V>;
     size: number;
     values(): Iterator<V>;
+    // Multiple Indexers not yet supported
+    [key: $SymbolToStringTag | $SymbolSpecies]: Function;
 }
 
 declare class WeakMap<K, V> {
@@ -393,17 +540,16 @@ declare class Set<T> {
     clear(): void;
     delete(value: T): boolean;
     entries(): Iterator<[T, T]>;
-    forEach(callbackfn: (value: T, index: T, set: Set<T>) => void, thisArg?: any): void;
+    forEach(callbackfn: (value: T, index: T, set: Set<T>) => mixed, thisArg?: any): void;
     has(value: T): boolean;
     keys(): Iterator<T>;
     size: number;
     values(): Iterator<T>;
+    [key: $SymbolSpecies]: Function; // This would the Set constructor, can't think of a way to correctly type this
 }
 
 declare class WeakSet<T: Object> {
-    constructor<V: Object>(_: void): WeakSet<V>;
-    constructor<V: Object>(iterable: Array<V>): WeakSet<V>;
-    constructor<V: Object>(iterable: Iterable<V>): WeakSet<V>;
+    constructor(iterable?: Iterable<T>): void;
     add(value: T): WeakSet<T>;
     delete(value: T): boolean;
     has(value: T): boolean;
@@ -428,19 +574,10 @@ declare class Promise<+R> {
       onReject?: (error: any) => ?Promise<U> | U
     ): Promise<U>;
 
-    static resolve<T>(object?: Promise<T> | T): Promise<T>;
+    static resolve<T>(object: Promise<T> | T): Promise<T>;
     static reject<T>(error?: any): Promise<T>;
-    static all: Promise$All;
+    static all<Elem, T:Iterable<Elem>>(promises: T): Promise<$TupleMap<T, typeof $await>>;
     static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
-
-    // Non-standard APIs common in some libraries
-
-    done<U>(
-      onFulfill?: (value: R) => mixed,
-      onReject?: (error: any) => mixed
-    ): void;
-
-    static cast<T>(object?: T): Promise<T>;
 }
 
 // we use this signature when typing await expressions
@@ -449,122 +586,94 @@ declare function $await<T>(p: Promise<T> | T): T;
 /* Binary data */
 
 declare class ArrayBuffer {
+    static isView(arg: mixed): boolean;
     constructor(byteLength: number): void;
     byteLength: number;
-    slice(begin:number, end?:number): ArrayBuffer;
+    slice(begin: number, end?: number): this;
+    [key: $SymbolSpecies]: Function; // This would be the constructor, can't think of a way to correctly type this
 }
 
-declare class ArrayBufferView {
-    buffer: ArrayBuffer;
-    byteOffset: number;
-    byteLength: number;
-}
+// This is a helper type to simplify the specification, it isn't an interface
+// and there are no objects implementing it.
+// https://developer.mozilla.org/en-US/docs/Web/API/ArrayBufferView
+type $ArrayBufferView = $TypedArray | DataView;
 
-declare class Int8Array extends ArrayBufferView {
-    // Constructor(unsigned long length),
-    // Constructor(TypedArray array),
-    // Constructor(type[] array),
-    // Constructor(ArrayBuffer buffer, optional unsigned long byteOffset, optional unsigned long length)
-    constructor(buffer: ArrayBuffer | number | Array<number> | ArrayBufferView, byteOffset?: number, length?: number): void;
-    [index: number]: number;
-    BYTES_PER_ELEMENT: number;
-    length: number;
-    get(index: number): number;
-    set(index: number, value: number): void;
-    set(array: Int8Array | Array<number>, offset?: number): void;
-    subarray(begin: number, end?: number): Int8Array;
-}
+// The TypedArray intrinsic object is a constructor function, but does not have
+// a global name or appear as a property of the global object.
+// http://www.ecma-international.org/ecma-262/6.0/#sec-%typedarray%-intrinsic-object
+declare class $TypedArray {
+    static BYTES_PER_ELEMENT: number;
+    static from(iterable: Iterable<number>): this;
+    static of(...values: number[]): this;
 
-declare class Uint8Array extends ArrayBufferView {
-    constructor(buffer: ArrayBuffer | number | Array<number> | ArrayBufferView, byteOffset?: number, length?: number): void;
-    [index: number]: number;
-    BYTES_PER_ELEMENT: number;
-    length: number;
-    get(index: number): number;
-    set(index: number, value: number): void;
-    set(array: Uint8Array | Array<number>, offset?: number): void;
-    subarray(begin: number, end?: number): Uint8Array;
-}
-
-declare class Uint8ClampedArray extends ArrayBufferView {
-    constructor(buffer: ArrayBuffer | number | Array<number> | ArrayBufferView, byteOffset?: number, length?: number): void;
-    [index: number]: number;
-    BYTES_PER_ELEMENT: number;
-    length: number;
-    get(index: number): number;
-    set(index: number, value: number): void;
-    set(array: Uint8ClampedArray | Array<number>, offset?: number): void;
-    subarray(begin: number, end?: number): Uint8ClampedArray;
-}
-
-declare class Int16Array extends ArrayBufferView {
-    constructor(buffer: ArrayBuffer | number | Array<number> | ArrayBufferView, byteOffset?: number, length?: number): void;
-    [index: number]: number;
-    BYTES_PER_ELEMENT: number;
-    length: number;
-    get(index: number): number;
-    set(index: number, value: number): void;
-    set(array: Int16Array | Array<number>, offset?: number): void;
-    subarray(begin: number, end?: number): Int16Array;
-}
-
-declare class Uint16Array extends ArrayBufferView {
-    constructor(buffer: ArrayBuffer | number | Array<number> | ArrayBufferView, byteOffset?: number, length?: number): void;
-    [index: number]: number;
-    BYTES_PER_ELEMENT: number;
-    length: number;
-    get(index: number): number;
-    set(index: number, value: number): void;
-    set(array: Uint16Array | Array<number>, offset?: number): void;
-    subarray(begin: number, end?: number): Uint16Array;
-}
-
-declare class Int32Array extends ArrayBufferView {
-    constructor(buffer: ArrayBuffer | number | Array<number> | ArrayBufferView, byteOffset?: number, length?: number): void;
-    [index: number]: number;
-    BYTES_PER_ELEMENT: number;
-    length: number;
-    get(index: number): number;
-    set(index: number, value: number): void;
-    set(array: Int32Array | Array<number>, offset?: number): void;
-    subarray(begin: number, end?: number): Int32Array;
-}
-
-declare class Uint32Array extends ArrayBufferView {
-    constructor(buffer: ArrayBuffer | number | Array<number> | ArrayBufferView, byteOffset?: number, length?: number): void;
-    [index: number]: number;
-    BYTES_PER_ELEMENT: number;
-    length: number;
-    get(index: number): number;
-    set(index: number, value: number): void;
-    set(array: Uint32Array | Array<number>, offset?: number): void;
-    subarray(begin: number, end?: number): Uint32Array;
-}
-
-declare class Float32Array extends ArrayBufferView {
-    constructor(buffer: ArrayBuffer | number | Array<number> | ArrayBufferView, byteOffset?: number, length?: number): void;
-    [index: number]: number;
-    BYTES_PER_ELEMENT: number;
-    length: number;
-    get(index: number): number;
-    set(index: number, value: number): void;
-    set(array: Float32Array | Array<number>, offset?: number): void;
-    subarray(begin: number, end?: number): Float32Array;
-}
-
-declare class Float64Array extends ArrayBufferView {
-    constructor(buffer: ArrayBuffer | number | Array<number> | ArrayBufferView, byteOffset?: number, length?: number): void;
-    [index: number]: number;
-    BYTES_PER_ELEMENT: number;
-    length: number;
-    get(index: number): number;
-    set(index: number, value: number): void;
-    set(array: Float64Array | Array<number>, offset?: number): void;
-    subarray(begin: number, end?: number): Float64Array;
-}
-
-declare class DataView extends ArrayBufferView {
+    constructor(length: number): void;
+    constructor(typedArray: $TypedArray): void;
+    constructor(iterable: Iterable<number>): void;
     constructor(buffer: ArrayBuffer, byteOffset?: number, length?: number): void;
+
+    [index: number]: number;
+
+    @@iterator(): Iterator<number>;
+
+    buffer: ArrayBuffer;
+    byteLength: number;
+    byteOffset: number;
+    length: number;
+
+    copyWithin(target: number, start: number, end?: number): void;
+    entries(): Iterator<number>;
+    every(callback: (value: number, index: number, array: this) => mixed, thisArg?: any): boolean;
+    fill(value: number, start?: number, end?: number): void;
+    filter(callback: (value: number, index: number, array: this) => mixed, thisArg?: any): this;
+    find(callback: (value: number, index: number, array: this) => mixed, thisArg?: any): number | void;
+    findIndex(callback: (value: number, index: number, array: this) => mixed, thisArg?: any): number | void;
+    forEach(callback: (value: number, index: number, array: this) => mixed, thisArg?: any): void;
+    includes(searchElement: number, fromIndex?: number): boolean;
+    indexOf(searchElement: number, fromIndex?: number): number; // -1 if not present
+    join(separator?: string): string;
+    keys(): Array<number>;
+    lastIndexOf(searchElement: number, fromIndex?: number): number; // -1 if not present
+    map(callback: (currentValue: number, index: number, array: this) => number, thisArg?: any): this;
+    reduce(
+      callback: (previousValue: number, currentValue: number, index: number, array: this) => number,
+      initialValue: void
+    ): number;
+    reduce<U>(
+      callback: (previousValue: U, currentValue: number, index: number, array: this) => U,
+      initialValue: U
+    ): U;
+    reduceRight(
+      callback: (previousValue: number, currentValue: number, index: number, array: this) => number,
+      initialValue: void
+    ): number;
+    reduceRight<U>(
+      callback: (previousValue: U, currentValue: number, index: number, array: this) => U,
+      initialValue: U
+    ): U;
+    reverse(): this;
+    set(array: Array<number> | $TypedArray, offset?: number): void;
+    slice(begin?: number, end?: number): this;
+    some(callback: (value: number, index: number, array: this) => mixed, thisArg?: any): boolean;
+    sort(compare?: (a: number, b: number) => number): void;
+    subarray(begin?: number, end?: number): this;
+    values(): Iterator<number>;
+}
+
+declare class Int8Array extends $TypedArray {}
+declare class Uint8Array extends $TypedArray {}
+declare class Uint8ClampedArray extends $TypedArray {}
+declare class Int16Array extends $TypedArray {}
+declare class Uint16Array extends $TypedArray {}
+declare class Int32Array extends $TypedArray {}
+declare class Uint32Array extends $TypedArray {}
+declare class Float32Array extends $TypedArray {}
+declare class Float64Array extends $TypedArray {}
+
+declare class DataView {
+    constructor(buffer: ArrayBuffer, byteOffset?: number, length?: number): void;
+    buffer: ArrayBuffer;
+    byteLength: number;
+    byteOffset: number;
     getInt8(byteOffset: number): number;
     getUint8(byteOffset: number): number;
     getInt16(byteOffset: number, littleEndian?: boolean): number;
@@ -593,7 +702,6 @@ declare class Reflect {
     static construct(target: Function, argumentsList?: Array<any>, newTarget?: Function): any;
     static defineProperty(o: any, p: any, attributes: any): boolean;
     static deleteProperty(o: any, p: any): boolean;
-    static enumerate(o: any): Iterator<any>;
     static get(o: any, p: any, receiver?: any): any;
     static getOwnPropertyDescriptor(o: any, p: any): any;
     static getPrototypeOf(o: any): any;
@@ -603,6 +711,34 @@ declare class Reflect {
     static preventExtensions(o: any): boolean;
     static set(o: any, p: any, value: any, receiver?: any): boolean;
     static setPrototypeOf(o: any, prototype: any): boolean;
+}
+
+/* Proxy */
+
+type Proxy$traps<T> = {
+  getPrototypeOf?: (target: T) => ?Object;
+  setPrototypeOf?: (target: T, prototype: ?Object) => boolean;
+  isExtensible?: (target: T) => boolean;
+  preventExtensions?: (target: T) => boolean;
+  getOwnPropertyDescriptor?: (target: T, property: string) => void | Object;
+  defineProperty?: (target: T, property: string, descriptor: Object) => boolean;
+  has?: (target: T, key: string) => boolean;
+  get?: (target: T, property: string, receiver: Proxy<T>) => any;
+  set?: (target: T, property: string, value: any, receiver: Proxy<T>) => boolean;
+  deleteProperty?: (target: T, property: string) => boolean;
+  ownKeys?: (target: T) => Array<string>;
+  apply?: (target: T, context: any, args: Array<any>) => any;
+  construct?: (target: T, args: Array<any>, newTarget: Function) => Object;
+};
+
+type Proxy$revocable<T> = T & {
+  revoke(): void;
+};
+
+declare class Proxy<T> {
+  constructor(target: T, handler: Proxy$traps<T>): T;
+
+  static revocable(target: T, handler: Proxy$traps<T>): Proxy$revocable<T>;
 }
 
 /* CommonJS */
@@ -622,7 +758,26 @@ declare function require(id: string): any;
 declare var exports: any;
 
 /* Commonly available, shared between node and dom */
-declare var console: any;
-
-/* JSX Intrinsics */
-type $JSXIntrinsics = Object;
+declare var console: {
+  assert(condition: mixed, ...data: Array<any>): void;
+  clear(): void;
+  count(label: string): void;
+  debug(...data: Array<any>): void;
+  dir(...data: Array<any>): void;
+  dirxml(...data: Array<any>): void;
+  error(...data: Array<any>): void;
+  _exception(...data: Array<any>): void;
+  group(...data: Array<any>): void;
+  groupCollapsed(...data: Array<any>): void;
+  groupEnd(): void;
+  info(...data: Array<any>): void;
+  log(...data: Array<any>): void;
+  profile(name: string): void;
+  profileEnd(): void;
+  table(tabularData: { [key: string]: any } | Array<{ [key: string]: any }> | Array<Array<any>>): void;
+  time(label: string): void;
+  timeEnd(label: string): void;
+  timeStamp(label?: string): void;
+  trace(...data: Array<any>): void;
+  warn(...data: Array<any>): void;
+};
