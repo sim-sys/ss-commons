@@ -1,5 +1,5 @@
 {
-  "devDependencies": {
+  "dependencies": {
     "babel-cli": "6.10.1",
     "babel-eslint": "6.1.2",
     "babel-plugin-external-helpers-2": "6.3.13",
@@ -17,9 +17,7 @@
     "mocha": "2.5.3",
     "eslint-plugin-import": "1.10.2",
     "eslint-plugin-jsx-a11y": "1.5.5",
-    "eslint-plugin-flow-vars": "0.4.0"
-  },
-  "dependencies": {
+    "eslint-plugin-flow-vars": "0.4.0",
     "glob": "7.0.5"
   }
 }
